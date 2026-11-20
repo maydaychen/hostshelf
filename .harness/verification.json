@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "verifierVersion": 2,
+  "profiles": [],
+  "adapters": [],
+  "capabilities": [],
+  "policies": {
+    "fileLines": {
+      "enabled": true,
+      "warn": 500,
+      "max": 1000
+    }
+  },
+  "workspaces": [
+    {
+      "path": ".",
+      "checks": [
+        {
+          "id": "source-file-lines",
+          "runner": "file-lines",
+          "modes": [
+            "task",
+            "push",
+            "release"
+          ],
+          "provides": [
+            "source.file-lines"
+          ],
+          "timeoutSeconds": 30,
+          "fileLines": {
+            "root": ".",
+            "warn": 500,
+            "max": 1000,
+            "extensions": [
+              ".java",
+              ".js",
+              ".jsx",
+              ".py",
+              ".swift",
+              ".ts",
+              ".tsx",
+              ".vue"
+            ],
+            "exclude": [
+              "scripts/harness/verify.py",
+              ".tmp"
+            ]
+          }
+        },
+        {
+          "id": "project-configuration",
+          "runner": "config-files",
+          "modes": [
+            "task",
+            "push",
+            "release"
+          ],
+          "configFiles": [
+            {
+              "path": "Config/Info.plist",
+              "type": "plist"
+            },
+            {
+              "path": "Config/HostShelf.entitlements",
+              "type": "entitlements"
+            }
+          ]
+        },
+        {
+          "id": "shell-syntax",
+          "runner": "command",
+          "modes": [
+            "task",
+            "push",
+            "release"
+          ],
+          "argv": [
+            "bash",
+            "-n",
+            "script/build.sh",
+            "script/test.sh",
+            "script/build_and_run.sh",
+            "script/package.sh",
+            "script/build_paths.sh",
+            "script/generate_app_icon.sh",
+            "script/check_release_privacy.sh",
+            "script/check_readonly.sh",
+            "script/test_manual_refresh.sh",
+            "script/verify_packages.sh",
+            "script/test_terminal_launcher.sh",
+            "script/test_app_interactions.sh"
+          ],
+          "timeoutSeconds": 30
+        },
+        {
+          "id": "core-unit-tests",
+          "runner": "command",
+          "modes": [
+            "push",
+            "release"
+          ],
+          "argv": [
+            "./script/test.sh"
+          ],
+          "timeoutSeconds": 600
+        },
+        {
+          "id": "macos-arm64-build",
+          "runner": "command",
+          "modes": [
+            "push",
+            "release"
+          ],
+          "argv": [
+            "./script/build.sh",
+            "arm64"
+          ],
+          "timeoutSeconds": 900
+        },
+        {
+          "id": "macos-intel-build",
+          "runner": "command",
+          "modes": [
+            "push",
+            "release"
+          ],
+          "argv": [
+            "./script/build.sh",
+            "x86_64"
+          ],
+          "timeoutSeconds": 900
+        },
+        {
+          "id": "manual-refresh",
+          "runner": "command",
+          "modes": [
+            "push",
+            "release"
+          ],
+          "argv": [
+            "./script/test_manual_refresh.sh"
+          ],
+          "timeoutSeconds": 120
+        },
+        {
+          "id": "terminal-launcher",
+          "runner": "command",
+          "modes": [
+            "push",
+            "release"
+          ],
+          "argv": [
+            "./script/test_terminal_launcher.sh"
+          ],
+          "timeoutSeconds": 120
+        },
+        {
+          "id": "app-interactions",
+          "runner": "command",
+          "modes": ["push", "release"],
+          "argv": ["./script/test_app_interactions.sh"],
+          "timeoutSeconds": 120
+        },
+        {
+          "id": "binary-privacy-tests",
+          "runner": "command",
+          "modes": ["task", "push", "release"],
+          "argv": ["python3", "Tests/ServiceChecks/BinaryPrivacyCheck.py"],
+          "timeoutSeconds": 120
+        },
+        {
+          "id": "release-binary-privacy",
+          "runner": "command",
+          "modes": ["push", "release"],
+          "argv": ["./script/check_release_privacy.sh"],
+          "timeoutSeconds": 900
+        }
+      ]
+    }
+  ]
+}

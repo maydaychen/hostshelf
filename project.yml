@@ -1,0 +1,79 @@
+name: HostShelf
+options:
+  deploymentTarget:
+    macOS: '14.0'
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: '0.1.3'
+    CURRENT_PROJECT_VERSION: '4'
+    MACOSX_DEPLOYMENT_TARGET: '14.0'
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: '-'
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_EMIT_LOC_STRINGS: NO
+  configs:
+    Release:
+      ENABLE_TESTABILITY: NO
+      DEPLOYMENT_POSTPROCESSING: YES
+      STRIP_INSTALLED_PRODUCT: YES
+      STRIP_STYLE: debugging
+      COPY_PHASE_STRIP: YES
+targets:
+  HostShelfCore:
+    type: framework
+    platform: macOS
+    sources: [Sources/HostShelfCore]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.maydaychen.HostShelf.core
+        GENERATE_INFOPLIST_FILE: YES
+        SKIP_INSTALL: YES
+        DEFINES_MODULE: YES
+  HostShelf:
+    type: application
+    platform: macOS
+    sources: [Sources/HostShelf]
+    dependencies:
+      - target: HostShelfCore
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.maydaychen.HostShelf
+        CODE_SIGN_ENTITLEMENTS: Config/HostShelf.entitlements
+        COMBINE_HIDPI_IMAGES: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: Config/Info.plist
+      properties:
+        CFBundleDisplayName: HostShelf
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSPrincipalClass: NSApplication
+        NSHighResolutionCapable: true
+        NSAppleEventsUsageDescription: 点击连接时，HostShelf 需要控制你选择的终端应用，以便在新窗口运行所选 SSH 别名。
+        NSHumanReadableCopyright: Copyright © 2026 HostShelf
+    entitlements:
+      path: Config/HostShelf.entitlements
+      properties:
+        com.apple.security.automation.apple-events: true
+  HostShelfCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests/HostShelfCoreTests]
+    dependencies:
+      - target: HostShelfCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.maydaychen.HostShelf.tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  HostShelf:
+    build:
+      targets:
+        HostShelf: all
+        HostShelfCoreTests: [test]
+    test:
+      targets: [HostShelfCoreTests]
