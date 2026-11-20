@@ -1,5 +1,13 @@
 # HostShelf 验收记录
 
+## 0.1.3（4）公开仓库重建与独立公开验收
+
+2026-11-21 00:31（北京时间）：在清除含旧路径与显示器 ICC 元数据的两张旧截图并重建单根无父基线后，旧私有库 `1432831968` 已删除并重新创建为同名公开仓库 `maydaychen/hostshelf`（新 ID `1465649215`），清洁根提交 `2a9a81ddea3346a1742df41a1cdd95c207947a95`、`v0.1.3` 标签及公开 [v0.1.3 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.1.3)（`draft=false`、`prerelease=true`）已上线。独立 `public-release-verifier` 子 Agent 使用纯匿名公开请求（未携带 `Authorization` 头，且 `git ls-remote` 禁用凭据助手）完成下列核验并确认 `passed: true`：
+
+- **新旧仓库与历史隔离**：`maydaychen/hostshelf` 返回公开且 `private=false`、`visibility="public"`；仅存在 1 条无父提交 `2a9a81ddea3346a1742df41a1cdd95c207947a95`（使用 GitHub 用户名与隐私 noreply 邮箱）。旧仓库 `/repositories/1432831968` 返回 404；迁移前基线中的全部 16 条旧提交在新公开仓库 `/git/commits/<sha>` 返回 404、`/commits/<sha>` 返回 422，2 个旧截图 blob 在 `/git/blobs/<sha>` 返回 404。
+- **公开文档与标准 sRGB 截图**：匿名拉取公开 `README.md` 与亮／暗两张截图，字节 SHA-256 与本地完全一致；两张截图均为 `1760 × 1224` RGBA，PNG 仅包含 `IHDR`、`sRGB`、`IDAT`、`IEND` 四类块（CRC 全过，无 `iCCP`、`cICP`、`eXIf`、`tEXt`、`iTXt`、`tIME`、`mmod`）。
+- **无认证公开下载与包复验**：不带认证头直接从公开 Release 下载 `HostShelf-0.1.3-macos-arm64.dmg`、`HostShelf-0.1.3-macos-x86_64.dmg` 及对应 `.sha256` 四份文件，字节哈希与远端摘要及本地原件三方 100% 一致；下载包经 `shasum`、`codesign --verify --strict`、`hdiutil verify`、`xcrun stapler validate`、`spctl` 与只读挂载复验版本 `0.1.3（4）`、单架构及最低系统 `14.0` 全通过，临时挂载点已清理。证据保存于已忽略的 `.tmp/public-rebuild-0.1.3/`。
+
 ## 0.1.3（4）发布、大列表优化与配置读取边界修复
 
 2026-11-20 23:26（北京时间）：[v0.1.3](https://github.com/maydaychen/hostshelf/releases/tag/v0.1.3) 已发布，`draft=false`、`prerelease=true`，源码为 `86ed7cd7897c3e5c79af40603752a7275706a9b8`。纳入本版的改动与门禁范围如下：
@@ -258,4 +266,4 @@ python3 scripts/harness/verify.py --mode task
 - 使用真实签名 Release 构建验证所选终端自动化首次允许、拒绝、恢复及新窗口行为；真实服务器连接须有明确目标和授权。
 - 取得 macOS 14 Apple Silicon、macOS 14 Intel 测试环境；Intel 交叉编译不算 Intel 运行验收。
 - 补充干净 Mac／断网首次安装验收；本机签名、票据和 Gatekeeper 检查已通过，不得以关闭 Gatekeeper 作为验收通过。
-- 当前已完成清洁公开基线与标准 sRGB 截图重拍，待重建公开仓库并同步 `v0.1.3` 预发布后补充公开远端独立验收；提交身份继续使用 GitHub 隐私邮箱。公开发行仍需相应授权与实机验收。
+- 源码与两份已公证安装包已同步至 GitHub 公开仓库（`v0.1.3` 保持预发布标记），提交身份使用 GitHub 隐私邮箱；历史旧库与旧图不可读已通过独立匿名验收。公开发行仍需相应实机与终端授权验收。
