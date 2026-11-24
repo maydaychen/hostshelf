@@ -29,12 +29,14 @@ struct SidebarView: View {
                 .disabled(!store.metadataWritable)
                 .accessibilityIdentifier("newGroupButton")
             } header: { Text("分组") }
-            Section("配置来源") {
-                ForEach(store.snapshot.sources, id: \.self) { path in
-                    Label(URL(fileURLWithPath: path).lastPathComponent, systemImage: "doc.text")
-                        .tag(SidebarFilter.source(path))
-                        .help(store.displayPath(path))
-                        .contextMenu { Button("在 Finder 中显示") { store.showInFinder(path) } }
+            if !store.hostSources.isEmpty {
+                Section("配置来源") {
+                    ForEach(store.hostSources, id: \.self) { path in
+                        Label(URL(fileURLWithPath: path).lastPathComponent, systemImage: "doc.text")
+                            .tag(SidebarFilter.source(path))
+                            .help(store.displayPath(path))
+                            .contextMenu { Button("在 Finder 中显示") { store.showInFinder(path) } }
+                    }
                 }
             }
         }

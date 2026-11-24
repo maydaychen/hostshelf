@@ -56,7 +56,7 @@ struct ContentView: View {
             ToolbarItem {
                 Button { store.showDiagnostics = true } label: {
                     Label("配置诊断", systemImage: store.snapshot.hasWarnings ? "exclamationmark.triangle" : "list.bullet.rectangle")
-                }.help("查看诊断、规则和 Include 来源")
+                }.help("查看诊断、配置来源、规则和 Include 关系")
             }
         }
         .onChange(of: store.searchText) { _, _ in store.reconcileSelection() }
@@ -109,7 +109,10 @@ private struct HostListView: View {
 
     var body: some View {
         let hosts = store.visibleHosts
-        let status = store.isConnecting ? "正在交给终端…" : store.statusMessage ?? "\(store.snapshot.sources.count) 个配置来源"
+        let defaultStatus = "已扫描 \(store.snapshot.sources.count) 个来源"
+        let defaultHelp = "已扫描 \(store.snapshot.sources.count) 个配置文件（其中 \(store.hostSources.count) 个包含主机）；完整列表见配置诊断。"
+        let status = store.isConnecting ? "正在交给终端…" : store.statusMessage ?? defaultStatus
+        let statusHelp = store.isConnecting || store.statusMessage != nil ? status : defaultHelp
         VStack(spacing: 0) {
             HStack {
                 Text(filterTitle).font(.headline)
@@ -175,7 +178,7 @@ private struct HostListView: View {
                     .frame(width: 16)
                 Text(status)
                     .lineLimit(1)
-                    .help(status)
+                    .help(statusHelp)
                     .accessibilityIdentifier("hostListStatus")
                 Spacer(minLength: 4)
                 if store.hasScanned {

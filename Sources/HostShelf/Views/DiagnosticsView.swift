@@ -24,6 +24,26 @@ struct DiagnosticsView: View {
                         diagnosticSection(.information, title: "提示", systemImage: "info.circle")
                     }
                     VStack(alignment: .leading, spacing: 10) {
+                        Label("已扫描配置来源（\(store.snapshot.sources.count)）", systemImage: "doc.text").font(.headline)
+                        if store.snapshot.sources.isEmpty {
+                            Text("尚未扫描到配置文件。").font(.callout).foregroundStyle(.secondary)
+                        }
+                        ForEach(store.snapshot.sources, id: \.self) { path in
+                            let hostCount = store.hostCount(forSource: path)
+                            let status = hostCount > 0
+                                ? "\(hostCount) 台主机"
+                                : (store.snapshot.sourceIdentities[path] == nil ? "未能读取" : "未声明主机")
+                            HStack(spacing: 8) {
+                                Text(store.displayPath(path)).font(.system(.callout, design: .monospaced))
+                                Text(status).font(.caption).foregroundStyle(.secondary).fixedSize()
+                                Button { store.showInFinder(path) } label: { Image(systemName: "folder") }
+                                    .buttonStyle(.borderless)
+                                    .help("在 Finder 中显示")
+                                    .accessibilityLabel("在 Finder 中显示 \(URL(fileURLWithPath: path).lastPathComponent)")
+                            }
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 10) {
                         Label("Include 关系（\(store.snapshot.includes.count)）", systemImage: "point.3.connected.trianglepath.dotted").font(.headline)
                         if store.snapshot.includes.isEmpty { Text("没有 Include 声明。 ").foregroundStyle(.secondary) }
                         ForEach(Array(store.snapshot.includes.enumerated()), id: \.offset) { _, include in

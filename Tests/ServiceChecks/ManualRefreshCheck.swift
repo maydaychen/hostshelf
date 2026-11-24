@@ -50,15 +50,42 @@ struct ManualRefreshCheck {
 
         store.sidebarSelection = .source(include.path)
         store.reconcileSelection()
-        guard store.selectedHostAlias == "included" else { throw Failure.check("included host must be selected") }
+        guard store.selectedHostAlias == "included",
+              store.hostSources == [config.path, include.path].sorted() else {
+            throw Failure.check("included host must be selected")
+        }
+
+        let declOnly = root.appendingPathComponent("decl-only.conf")
+        try "  User ops\n".write(to: declOnly, atomically: true, encoding: .utf8)
+        try "Host *\n  ServerAliveInterval 60\n".write(to: include, atomically: true, encoding: .utf8)
+        try "Include \(include.path)\nHost updated\n  Include \(declOnly.path)\n".write(to: config, atomically: true, encoding: .utf8)
+        store.refresh()
+        try await waitForRefresh(store)
+        guard store.snapshot.sources.contains(include.path),
+              !store.hostSources.contains(include.path),
+              store.hostCount(forSource: include.path) == 0,
+              store.hostSources.contains(declOnly.path),
+              store.hostCount(forSource: declOnly.path) == 1,
+              store.sidebarSelection == .all,
+              store.selectedHostAlias == "updated",
+              store.visibleHosts.map(\.alias) == ["updated"] else {
+            throw Failure.check("empty-host source must fall back while declaration-only include stays listed")
+        }
+
+        store.sidebarSelection = .source(declOnly.path)
+        store.reconcileSelection()
+        guard store.selectedHostAlias == "updated" else { throw Failure.check("declaration-only source must select updated") }
         try "Host updated\n".write(to: config, atomically: true, encoding: .utf8)
         store.refresh()
         try await waitForRefresh(store)
-        guard !store.snapshot.sources.contains(include.path), store.sidebarSelection == .all,
+        guard !store.snapshot.sources.contains(include.path),
+              !store.snapshot.sources.contains(declOnly.path),
+              !store.hostSources.contains(declOnly.path),
+              store.sidebarSelection == .all,
               store.selectedHostAlias == "updated", store.visibleHosts.map(\.alias) == ["updated"] else {
             throw Failure.check("removed source must fall back to all hosts and reconcile selection")
         }
-        print("PASS: refresh falls back to all hosts when the selected source disappears")
+        print("PASS: refresh falls back to all hosts when the selected source loses hosts or disappears")
 
         let sizes = try await checkButtonGeometry()
         print("PASS: refresh button fitting size remains \(sizes) in light/dark idle/loading states")

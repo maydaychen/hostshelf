@@ -22,6 +22,8 @@ final class AppStore {
     }
     private(set) var snapshot = SSHIndexSnapshot()
     private(set) var sortedHosts: [HostEntry] = []
+    private(set) var hostSources: [String] = []
+    private var hostCountsBySource: [String: Int] = [:]
     private(set) var metadata = MetadataDocument()
     private(set) var isRefreshing = false
     private(set) var hasScanned = false
@@ -110,6 +112,7 @@ final class AppStore {
 
     var selectedHost: HostEntry? { selectedHostAlias.flatMap { hostsByAlias[$0] } }
     func host(for alias: String) -> HostEntry? { hostsByAlias[alias] }
+    func hostCount(forSource path: String) -> Int { hostCountsBySource[path] ?? 0 }
     var groups: [String] {
         Array(Set(metadata.groups + metadata.annotations.values.map(\.group)
             + unsavedAnnotations.values.map(\.group)).subtracting([""]))
@@ -139,17 +142,27 @@ final class AppStore {
         isRefreshing = true
         let configurationRoots = roots
         Task { [weak self] in
-            let (result, sorted) = await Task.detached(priority: .userInitiated) {
+            let (result, sorted, countsBySource, hostSources) = await Task.detached(priority: .userInitiated) {
                 let snapshot = SSHConfigIndexer().scan(roots: configurationRoots)
                 let sorted = snapshot.hosts.sorted {
                     $0.alias.localizedStandardCompare($1.alias) == .orderedAscending
                 }
-                return (snapshot, sorted)
+                var countsBySource: [String: Int] = [:]
+                for host in sorted {
+                    var hostPaths = Set<String>()
+                    for location in host.locations { hostPaths.insert(location.filePath) }
+                    for declaration in host.declarations { hostPaths.insert(declaration.location.filePath) }
+                    for path in hostPaths { countsBySource[path, default: 0] += 1 }
+                }
+                let hostSources = snapshot.sources.filter { (countsBySource[$0] ?? 0) > 0 }
+                return (snapshot, sorted, countsBySource, hostSources)
             }.value
             guard let self else { return }
             snapshot = result
             sortedHosts = sorted
             hostsByAlias = Dictionary(uniqueKeysWithValues: sorted.map { ($0.alias, $0) })
+            hostCountsBySource = countsBySource
+            self.hostSources = hostSources
             hasScanned = true
             isRefreshing = false
             reconcileSelection()
@@ -157,7 +170,7 @@ final class AppStore {
     }
 
     func reconcileSelection() {
-        if case .source(let path) = sidebarSelection, !snapshot.sources.contains(path) {
+        if case .source(let path) = sidebarSelection, !hostSources.contains(path) {
             sidebarSelection = .all
         }
         let hosts = visibleHosts

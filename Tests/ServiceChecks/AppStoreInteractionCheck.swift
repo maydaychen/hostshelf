@@ -13,9 +13,11 @@ struct AppStoreInteractionCheck {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let config = root.appendingPathComponent("config")
+        let systemConfig = root.appendingPathComponent("ssh_config")
         let metadata = root.appendingPathComponent("metadata.json")
         try "Host alpha beta gamma delta user@host SSH://host\n HostName fixture.example.invalid\n".write(to: config, atomically: true, encoding: .utf8)
-        setenv("HOSTSHELF_CONFIG_ROOTS", config.path, 1)
+        try "Host *\n  SendEnv LANG LC_*\n".write(to: systemConfig, atomically: true, encoding: .utf8)
+        setenv("HOSTSHELF_CONFIG_ROOTS", "\(config.path):\(systemConfig.path)", 1)
         setenv("HOSTSHELF_METADATA_PATH", metadata.path, 1)
         var document = MetadataDocument(groups: ["empty", "used", "archived", "draft"])
         document.annotations["alpha"] = HostAnnotation(group: "used", note: "original", lastLaunchedAt: Date(timeIntervalSince1970: 100))
@@ -36,6 +38,14 @@ struct AppStoreInteractionCheck {
         let store = AppStore(preferences: preferences, launcher: launcher)
         store.refresh()
         try await wait { store.hasScanned && !store.isRefreshing }
+        try require(
+            store.snapshot.sources == [config.path, systemConfig.path].sorted()
+                && store.hostSources == [config.path]
+                && store.hostCount(forSource: config.path) == 6
+                && store.hostCount(forSource: systemConfig.path) == 0
+                && store.snapshot.sourceIdentities[systemConfig.path] != nil,
+            "sidebar hostSources excludes zero-host sources while snapshot retains all scanned sources"
+        )
 
         try require(store.recentHosts.map(\.alias) == ["beta", "gamma", "alpha"], "recent date order and deterministic ties")
         store.sidebarSelection = .recent
