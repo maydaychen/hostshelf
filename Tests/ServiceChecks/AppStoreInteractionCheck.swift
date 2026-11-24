@@ -80,6 +80,8 @@ struct AppStoreInteractionCheck {
         print("PASS: recent filtering, deterministic ordering and empty-group protection include hidden and pending records")
         print("PASS: input bursts stay in memory, debounce saves the latest draft, flush cancels timers and preserves favorites")
 
+        try await verifyFuzzyAndExternalActions(root: root, config: config)
+
         guard let alpha = store.snapshot.hosts.first(where: { $0.alias == "alpha" }),
               let beta = store.snapshot.hosts.first(where: { $0.alias == "beta" }),
               let gamma = store.snapshot.hosts.first(where: { $0.alias == "gamma" }) else { throw Failure.check("fixture hosts") }
@@ -160,6 +162,84 @@ struct AppStoreInteractionCheck {
         try require(!store.flushAllAnnotations(), "termination must not report unsaved drafts as saved")
         print("PASS: window/termination flushes persist pending drafts; damaged metadata blocks writes and retains unsaved content")
         print("NOTE: no terminal script, Apple Event, real SSH configuration, clipboard or server was used")
+    }
+
+    @MainActor
+    private static func verifyFuzzyAndExternalActions(root: URL, config: URL) async throws {
+        let actionMetadata = root.appendingPathComponent("action-metadata.json")
+        var doc = MetadataDocument()
+        doc.annotations["beta"] = HostAnnotation(isFavorite: true)
+        doc.annotations["delta"] = HostAnnotation(lastLaunchedAt: Date())
+        try HostMetadataStore(fileURL: actionMetadata).save(doc)
+
+        setenv("HOSTSHELF_CONFIG_ROOTS", config.path, 1)
+        setenv("HOSTSHELF_METADATA_PATH", actionMetadata.path, 1)
+        let suite = "HostShelf.ExternalActions.\(UUID().uuidString)"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+
+        let terminalRecorder = Calls()
+        let launcher = TerminalLauncher(
+            execute: { alias, target in terminalRecorder.record("\(alias):\(target.rawValue)") },
+            availability: { target in target == .ghostty ? .notInstalled : .available }
+        )
+
+        var openedURLs: [(URL, URL?)] = []
+        let externalLauncher = ExternalActionLauncher(
+            applicationURLProvider: { editor in
+                switch editor {
+                case .vscode: return URL(fileURLWithPath: "/Applications/Visual Studio Code.app")
+                case .cursor: return URL(fileURLWithPath: "/Applications/Cursor.app")
+                case .zed: return nil
+                case .systemDefault: return nil
+                }
+            },
+            openURL: { url, appURL in
+                openedURLs.append((url, appURL))
+                return true
+            }
+        )
+
+        let actionStore = AppStore(preferences: preferences, launcher: launcher, externalLauncher: externalLauncher)
+        actionStore.refresh()
+        try await wait { actionStore.hasScanned && !actionStore.isRefreshing }
+
+        actionStore.searchText = "alha"
+        try require(actionStore.visibleHosts.map(\.alias) == ["alpha"], "fuzzy search should match alpha")
+        actionStore.searchText = ""
+
+        let emptyRanked = actionStore.quickLauncherHosts(for: "")
+        try require(emptyRanked.prefix(2).map(\.alias) == ["delta", "beta"], "empty quick launcher ranks recent then favorite")
+        try require(actionStore.quickLauncherHosts(for: "gma").first?.alias == "gamma", "quick launcher fuzzy subsequence query")
+
+        let alpha = actionStore.host(for: "alpha")!
+        actionStore.connect(alpha, target: .iterm2)
+        try await wait { !actionStore.isConnecting }
+        try require(terminalRecorder.aliases.last == "alpha:iterm2"
+                    && actionStore.preferredTerminal == .terminal,
+                    "one-off terminal override must not overwrite preferredTerminal")
+
+        actionStore.preferredEditor = .vscode
+        actionStore.openHostConfigInEditor(alpha)
+        try require(openedURLs.last?.0.absoluteString == "vscode://file\(config.path):1"
+                    && openedURLs.last?.1?.lastPathComponent == "Visual Studio Code.app",
+                    "editor file jump uses configured editor URL and bundle target")
+
+        actionStore.openRemoteSSH(alpha, editor: .cursor)
+        try require(openedURLs.last?.0.absoluteString == "cursor://vscode-remote/ssh-remote+alpha/"
+                    && openedURLs.last?.1?.lastPathComponent == "Cursor.app",
+                    "remote SSH opens targeted editor URL")
+
+        let countBeforeError = openedURLs.count
+        actionStore.openRemoteSSH(alpha, editor: .zed)
+        try require(openedURLs.count == countBeforeError && actionStore.errorNotice?.message.contains("Zed") == true,
+                    "unavailable editor must report error without opening URL")
+
+        actionStore.errorNotice = nil
+        actionStore.openRemoteSSH(actionStore.host(for: "user@host")!, editor: .vscode)
+        try require(openedURLs.count == countBeforeError && actionStore.errorNotice?.message.contains("SSH URI") == true,
+                    "ambiguous alias must fail Remote-SSH validation")
+        print("PASS: fuzzy search, quick launcher ranking, one-off terminal override, editor file jump and Remote-SSH validations")
     }
 
     @MainActor

@@ -165,6 +165,8 @@ private struct HostListView: View {
                         Button("复制连接命令") { store.copyCommand(host) }
                         Button(store.annotation(for: alias).isFavorite ? "取消收藏" : "收藏") { store.toggleFavorite(alias) }
                             .disabled(!store.metadataWritable)
+                        Divider()
+                        HostMoreActionsMenuContent(store: store, host: host)
                     }
                 } primaryAction: { aliases in
                     guard aliases.count == 1, let alias = aliases.first, visibleAliases.contains(alias),

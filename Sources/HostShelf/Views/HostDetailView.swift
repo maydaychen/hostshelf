@@ -17,6 +17,16 @@ struct HostDetailView: View {
     private var sourcePaths: [String] {
         Set(host.locations.map(\.filePath) + host.declarations.map { $0.location.filePath }).sorted()
     }
+    private var preferredLinesByPath: [String: Int] {
+        var lines: [String: Int] = [:]
+        for location in host.locations where lines[location.filePath] == nil {
+            lines[location.filePath] = location.line
+        }
+        for declaration in host.declarations where lines[declaration.location.filePath] == nil {
+            lines[declaration.location.filePath] = declaration.location.line
+        }
+        return lines
+    }
     private var displayedExcerpts: [SourceExcerpt] {
         loadedScan == store.snapshot.scannedAt ? excerpts : []
     }
@@ -46,6 +56,7 @@ struct HostDetailView: View {
                         HostSourceExcerptsSection(
                             store: store,
                             sourcePaths: sourcePaths,
+                            preferredLines: preferredLinesByPath,
                             excerpts: displayedExcerpts,
                             isLoadingExcerpts: isLoadingExcerpts,
                             expandedSources: $expandedSources,
@@ -158,6 +169,15 @@ struct HostDetailView: View {
         Button { store.copyCommand(host) } label: { Image(systemName: "doc.on.doc") }
             .accessibilityLabel("复制命令")
             .help("复制连接命令")
+        Menu {
+            HostMoreActionsMenuContent(store: store, host: host)
+        } label: {
+            Image(systemName: "ellipsis.circle")
+        }
+        .menuIndicator(.hidden)
+        .accessibilityLabel("更多操作")
+        .help("更多连接、复制与编辑器操作")
+        .accessibilityIdentifier("moreHostActions")
     }
 
     private func overview(isWide: Bool, showDeclarations: @escaping () -> Void) -> some View {
@@ -216,4 +236,50 @@ private struct ExcerptLoadKey: Equatable {
     let alias: String
     let scannedAt: Date
     let needsLoad: Bool
+}
+
+struct HostMoreActionsMenuContent: View {
+    var store: AppStore
+    let host: HostEntry
+
+    var body: some View {
+        Menu("使用其他终端连接") {
+            ForEach(store.availableTerminals(), id: \.target) { item in
+                let label = item.availability.unavailableReason.map {
+                    "\(item.target.displayName)（\($0)）"
+                } ?? item.target.displayName
+                Button(label) { store.connect(host, target: item.target) }
+                    .disabled(store.isConnecting || !item.availability.isAvailable)
+            }
+        }
+        Menu("在 Remote-SSH 中打开") {
+            ForEach(EditorTarget.remoteSSHTargets) { editor in
+                let available = store.isEditorAvailable(editor)
+                Button(available ? editor.displayName : "\(editor.displayName)（未安装）") {
+                    store.openRemoteSSH(host, editor: editor)
+                }
+                .disabled(!available)
+            }
+        }
+        Divider()
+        Button("复制主机地址（HostName）") { store.copyHostName(host) }
+            .disabled(ExternalActionBuilder.singleDeclaredAddress(for: host) == nil)
+        Button("复制 User@HostName") { store.copyUserAtHost(host) }
+            .disabled(ExternalActionBuilder.userAtHostAddress(for: host) == nil)
+        Button("复制 SCP 命令模板") { store.copySCPCommand(host) }
+        Divider()
+        Button("在 \(store.preferredEditor.displayName) 中打开配置") {
+            store.openHostConfigInEditor(host)
+        }
+        .disabled(host.locations.isEmpty || !store.isEditorAvailable(store.preferredEditor))
+        Menu("用指定编辑器打开配置") {
+            ForEach(EditorTarget.allCases) { editor in
+                let available = store.isEditorAvailable(editor)
+                Button(available ? editor.displayName : "\(editor.displayName)（未安装）") {
+                    store.openHostConfigInEditor(host, editor: editor)
+                }
+                .disabled(host.locations.isEmpty || !available)
+            }
+        }
+    }
 }

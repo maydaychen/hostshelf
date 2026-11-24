@@ -7,9 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0DA9FF904D36EFC10A814A68 /* HotKeyRecorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C7C1B4E2F68A813A49996B /* HotKeyRecorderView.swift */; };
 		0DD6EB5A149A09714CBC3F83 /* SSHCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30532B5102C174B474CCE82 /* SSHCommandTests.swift */; };
 		0ECE04FAB79F290F1D76DB7D /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1EB257C68EF953C08B5AE4 /* AppStore.swift */; };
+		1269A2A6EC902C1F754E6E7C /* QuickLauncherController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42B2001288238C6A22EF68BA /* QuickLauncherController.swift */; };
+		143C3C461FE8A1E036E1256B /* FuzzyMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374B4C753E88488495AE973A /* FuzzyMatcherTests.swift */; };
+		149B152F3F63446E6B850C70 /* ExternalActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F086F39A2A8E87DF1033B865 /* ExternalActions.swift */; };
 		17AC12FB6DB61363BAD2AE34 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AF283DE80AE7EF7BFD5386F /* ContentView.swift */; };
+		26E6F803D043CFE43D8CA72F /* FuzzyMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D365DA59013E9F071EB9A0 /* FuzzyMatcher.swift */; };
 		2B1F473B61067FD4A0C2A74E /* SSHConfigIndexerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45E4585AA9244F5F8E1FAEA /* SSHConfigIndexerTests.swift */; };
 		2B8B81663C7D4A2D0182B86A /* TerminalTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C5FDA1B2EBE9747D81070A4 /* TerminalTarget.swift */; };
 		30152F142CDA2A19E9EC9950 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4C2D03137DE032DFF1CCD /* SettingsView.swift */; };
@@ -17,19 +22,27 @@
 		3E33CFC23219258CC2321DCD /* HostShelfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */; };
 		53105A5BB6B2FC4F90D1E574 /* HostDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADF71D0BDF12B9C000BB1375 /* HostDetailView.swift */; };
 		5976FCCBA338EBDFC088C435 /* HostSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4FA232A812EB17E3423510 /* HostSearchField.swift */; };
+		5D2D35B67EF740792AC79F84 /* AppStore+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259E7F0828439F16F55992C6 /* AppStore+Actions.swift */; };
 		61B44E8EDE4550B82AED7D27 /* HostShelfMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF1E88C4C72E5EC5B80744F /* HostShelfMenu.swift */; };
+		6D91FA504B11BD4CADCAE058 /* HotKeyShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF75AB1753FBB1AA5930ECF /* HotKeyShortcutTests.swift */; };
 		746271F7BB1D19552FEF82E8 /* RefreshConfigurationButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B850DED7FD893C3848BA65E9 /* RefreshConfigurationButton.swift */; };
 		76C37103A9748819FB2B4044 /* HostShelfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */; };
 		78E199AF3726AB3791D52765 /* HostShelfCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7B7DF99E7BFFEF42F870A256 /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1427C3BBBB0279F68E12C69C /* TerminalLauncher.swift */; };
 		81175BFA9BE26263DA97C9D2 /* HostMetadataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024EDEE5D294ABA93AC85D52 /* HostMetadataStoreTests.swift */; };
 		9B25D4698D7076C4DA76D368 /* SourceExcerptReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C08A2547299173D6015ED004 /* SourceExcerptReaderTests.swift */; };
+		9D22B3492C78C83075BBD1E5 /* HotKeyShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60F312C8ECDFB1509AE9F36F /* HotKeyShortcut.swift */; };
+		9E5E260997EFFF6096C7C9FD /* ExternalActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F928954EF75BA3475068AC1B /* ExternalActionsTests.swift */; };
 		A02508998B357D0FA27831B8 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5FB19FC07365BC6BE122597 /* SidebarView.swift */; };
 		A10A922E0C57ADEFA76AE554 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18551E790DE48EC6FEBC5CC3 /* Models.swift */; };
+		A3C6ECC7DD01EEC4390B9327 /* GlobalHotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37508D6079AA1D658D21EB0 /* GlobalHotKeyManager.swift */; };
+		A564C9A163F801D7BFC5A9CB /* QuickLauncherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2963440447668856A01885 /* QuickLauncherView.swift */; };
+		BABF77BD931CF5A066EC328E /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8A6B31958E97C1918A94B01 /* LaunchAtLoginService.swift */; };
 		BCA7C44104BC97006A151E49 /* SSHCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CE061F655D99290C006F3F /* SSHCommand.swift */; };
 		BDEB8C300F1C57B203D1E7A7 /* HostSourceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3740798CA16283A79F26283E /* HostSourceSections.swift */; };
 		C6D354CFE1D5392EF367D223 /* SSHConfigLexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 083868DC519BE3AC2E3D6BF5 /* SSHConfigLexer.swift */; };
 		CBB3187DC8F3B0F28BCEF5E2 /* HostMetadataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D92B9E55560A449820AA13 /* HostMetadataStore.swift */; };
+		CBE562A3811859F2394EE13A /* ExternalActionLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DDF6BA47A172B8DB339142 /* ExternalActionLauncher.swift */; };
 		CDCB849B42FBF3FABE4EE5B0 /* SSHConfigIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 938E28B63C4A6A7BAB056CD7 /* SSHConfigIndexer.swift */; };
 		D287C6544C7006D92C099529 /* ConfigurationFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C18377C836B498BD28C53E6 /* ConfigurationFile.swift */; };
 		DB0FFF8F47B577A5355FA4C6 /* DiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD62C18AE93205B0FBDE7CF /* DiagnosticsView.swift */; };
@@ -89,30 +102,43 @@
 		0330998C1F2A0AB3AEFCC9FF /* HostShelfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostShelfApp.swift; sourceTree = "<group>"; };
 		083868DC519BE3AC2E3D6BF5 /* SSHConfigLexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConfigLexer.swift; sourceTree = "<group>"; };
 		0AF283DE80AE7EF7BFD5386F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		10C7C1B4E2F68A813A49996B /* HotKeyRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRecorderView.swift; sourceTree = "<group>"; };
 		1427C3BBBB0279F68E12C69C /* TerminalLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncher.swift; sourceTree = "<group>"; };
 		18551E790DE48EC6FEBC5CC3 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		259E7F0828439F16F55992C6 /* AppStore+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppStore+Actions.swift"; sourceTree = "<group>"; };
 		2EF1E88C4C72E5EC5B80744F /* HostShelfMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostShelfMenu.swift; sourceTree = "<group>"; };
 		3740798CA16283A79F26283E /* HostSourceSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostSourceSections.swift; sourceTree = "<group>"; };
+		374B4C753E88488495AE973A /* FuzzyMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuzzyMatcherTests.swift; sourceTree = "<group>"; };
+		42B2001288238C6A22EF68BA /* QuickLauncherController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLauncherController.swift; sourceTree = "<group>"; };
+		49DDF6BA47A172B8DB339142 /* ExternalActionLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalActionLauncher.swift; sourceTree = "<group>"; };
 		4C5FDA1B2EBE9747D81070A4 /* TerminalTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalTarget.swift; sourceTree = "<group>"; };
+		4D2963440447668856A01885 /* QuickLauncherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLauncherView.swift; sourceTree = "<group>"; };
 		60B6E207A9804ADAEF50FD38 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		60F312C8ECDFB1509AE9F36F /* HotKeyShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyShortcut.swift; sourceTree = "<group>"; };
 		65D92B9E55560A449820AA13 /* HostMetadataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostMetadataStore.swift; sourceTree = "<group>"; };
 		67CE061F655D99290C006F3F /* SSHCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHCommand.swift; sourceTree = "<group>"; };
 		6E1EB257C68EF953C08B5AE4 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
 		73D4C2D03137DE032DFF1CCD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7EF75AB1753FBB1AA5930ECF /* HotKeyShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyShortcutTests.swift; sourceTree = "<group>"; };
 		818A4ECF238475058F68BC77 /* SourceExcerptReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExcerptReader.swift; sourceTree = "<group>"; };
 		8C18377C836B498BD28C53E6 /* ConfigurationFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationFile.swift; sourceTree = "<group>"; };
 		913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HostShelfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		938E28B63C4A6A7BAB056CD7 /* SSHConfigIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConfigIndexer.swift; sourceTree = "<group>"; };
 		9D7D7F2C7B1F26A56CB09A26 /* HostShelfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HostShelfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A03FB3ADB4C59A47673F0791 /* HostMetadataSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostMetadataSection.swift; sourceTree = "<group>"; };
+		A8A6B31958E97C1918A94B01 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
 		AAD62C18AE93205B0FBDE7CF /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		ADF71D0BDF12B9C000BB1375 /* HostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostDetailView.swift; sourceTree = "<group>"; };
 		B850DED7FD893C3848BA65E9 /* RefreshConfigurationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshConfigurationButton.swift; sourceTree = "<group>"; };
 		C08A2547299173D6015ED004 /* SourceExcerptReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExcerptReaderTests.swift; sourceTree = "<group>"; };
 		D30532B5102C174B474CCE82 /* SSHCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHCommandTests.swift; sourceTree = "<group>"; };
 		EE4FA232A812EB17E3423510 /* HostSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostSearchField.swift; sourceTree = "<group>"; };
+		F086F39A2A8E87DF1033B865 /* ExternalActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalActions.swift; sourceTree = "<group>"; };
+		F0D365DA59013E9F071EB9A0 /* FuzzyMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuzzyMatcher.swift; sourceTree = "<group>"; };
+		F37508D6079AA1D658D21EB0 /* GlobalHotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKeyManager.swift; sourceTree = "<group>"; };
 		F45E4585AA9244F5F8E1FAEA /* SSHConfigIndexerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConfigIndexerTests.swift; sourceTree = "<group>"; };
 		F5FB19FC07365BC6BE122597 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		F928954EF75BA3475068AC1B /* ExternalActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalActionsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,6 +172,10 @@
 		1850B987F505C361BCA017B5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				49DDF6BA47A172B8DB339142 /* ExternalActionLauncher.swift */,
+				F37508D6079AA1D658D21EB0 /* GlobalHotKeyManager.swift */,
+				A8A6B31958E97C1918A94B01 /* LaunchAtLoginService.swift */,
+				42B2001288238C6A22EF68BA /* QuickLauncherController.swift */,
 				1427C3BBBB0279F68E12C69C /* TerminalLauncher.swift */,
 			);
 			path = Services;
@@ -154,7 +184,10 @@
 		360B0C24482E4A1D42F8C505 /* HostShelfCoreTests */ = {
 			isa = PBXGroup;
 			children = (
+				F928954EF75BA3475068AC1B /* ExternalActionsTests.swift */,
+				374B4C753E88488495AE973A /* FuzzyMatcherTests.swift */,
 				024EDEE5D294ABA93AC85D52 /* HostMetadataStoreTests.swift */,
+				7EF75AB1753FBB1AA5930ECF /* HotKeyShortcutTests.swift */,
 				C08A2547299173D6015ED004 /* SourceExcerptReaderTests.swift */,
 				D30532B5102C174B474CCE82 /* SSHCommandTests.swift */,
 				F45E4585AA9244F5F8E1FAEA /* SSHConfigIndexerTests.swift */,
@@ -193,7 +226,10 @@
 			isa = PBXGroup;
 			children = (
 				8C18377C836B498BD28C53E6 /* ConfigurationFile.swift */,
+				F086F39A2A8E87DF1033B865 /* ExternalActions.swift */,
+				F0D365DA59013E9F071EB9A0 /* FuzzyMatcher.swift */,
 				65D92B9E55560A449820AA13 /* HostMetadataStore.swift */,
+				60F312C8ECDFB1509AE9F36F /* HotKeyShortcut.swift */,
 				18551E790DE48EC6FEBC5CC3 /* Models.swift */,
 				818A4ECF238475058F68BC77 /* SourceExcerptReader.swift */,
 				67CE061F655D99290C006F3F /* SSHCommand.swift */,
@@ -231,6 +267,8 @@
 				EE4FA232A812EB17E3423510 /* HostSearchField.swift */,
 				2EF1E88C4C72E5EC5B80744F /* HostShelfMenu.swift */,
 				3740798CA16283A79F26283E /* HostSourceSections.swift */,
+				10C7C1B4E2F68A813A49996B /* HotKeyRecorderView.swift */,
+				4D2963440447668856A01885 /* QuickLauncherView.swift */,
 				B850DED7FD893C3848BA65E9 /* RefreshConfigurationButton.swift */,
 				03169D9DBE8E082C39B4D012 /* SearchHighlight.swift */,
 				73D4C2D03137DE032DFF1CCD /* SettingsView.swift */,
@@ -255,6 +293,7 @@
 			isa = PBXGroup;
 			children = (
 				6E1EB257C68EF953C08B5AE4 /* AppStore.swift */,
+				259E7F0828439F16F55992C6 /* AppStore+Actions.swift */,
 			);
 			path = Stores;
 			sourceTree = "<group>";
@@ -377,7 +416,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E5E260997EFFF6096C7C9FD /* ExternalActionsTests.swift in Sources */,
+				143C3C461FE8A1E036E1256B /* FuzzyMatcherTests.swift in Sources */,
 				81175BFA9BE26263DA97C9D2 /* HostMetadataStoreTests.swift in Sources */,
+				6D91FA504B11BD4CADCAE058 /* HotKeyShortcutTests.swift in Sources */,
 				0DD6EB5A149A09714CBC3F83 /* SSHCommandTests.swift in Sources */,
 				2B1F473B61067FD4A0C2A74E /* SSHConfigIndexerTests.swift in Sources */,
 				9B25D4698D7076C4DA76D368 /* SourceExcerptReaderTests.swift in Sources */,
@@ -388,15 +430,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D2D35B67EF740792AC79F84 /* AppStore+Actions.swift in Sources */,
 				0ECE04FAB79F290F1D76DB7D /* AppStore.swift in Sources */,
 				17AC12FB6DB61363BAD2AE34 /* ContentView.swift in Sources */,
 				DB0FFF8F47B577A5355FA4C6 /* DiagnosticsView.swift in Sources */,
+				CBE562A3811859F2394EE13A /* ExternalActionLauncher.swift in Sources */,
+				A3C6ECC7DD01EEC4390B9327 /* GlobalHotKeyManager.swift in Sources */,
 				53105A5BB6B2FC4F90D1E574 /* HostDetailView.swift in Sources */,
 				F464B42039A0CF443C78D1FC /* HostMetadataSection.swift in Sources */,
 				5976FCCBA338EBDFC088C435 /* HostSearchField.swift in Sources */,
 				32F66FFEE1FE7DF93D3E44AC /* HostShelfApp.swift in Sources */,
 				61B44E8EDE4550B82AED7D27 /* HostShelfMenu.swift in Sources */,
 				BDEB8C300F1C57B203D1E7A7 /* HostSourceSections.swift in Sources */,
+				0DA9FF904D36EFC10A814A68 /* HotKeyRecorderView.swift in Sources */,
+				BABF77BD931CF5A066EC328E /* LaunchAtLoginService.swift in Sources */,
+				1269A2A6EC902C1F754E6E7C /* QuickLauncherController.swift in Sources */,
+				A564C9A163F801D7BFC5A9CB /* QuickLauncherView.swift in Sources */,
 				746271F7BB1D19552FEF82E8 /* RefreshConfigurationButton.swift in Sources */,
 				ECB2D7DEF93A4ECD7188321B /* SearchHighlight.swift in Sources */,
 				30152F142CDA2A19E9EC9950 /* SettingsView.swift in Sources */,
@@ -410,7 +459,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				D287C6544C7006D92C099529 /* ConfigurationFile.swift in Sources */,
+				149B152F3F63446E6B850C70 /* ExternalActions.swift in Sources */,
+				26E6F803D043CFE43D8CA72F /* FuzzyMatcher.swift in Sources */,
 				CBB3187DC8F3B0F28BCEF5E2 /* HostMetadataStore.swift in Sources */,
+				9D22B3492C78C83075BBD1E5 /* HotKeyShortcut.swift in Sources */,
 				A10A922E0C57ADEFA76AE554 /* Models.swift in Sources */,
 				BCA7C44104BC97006A151E49 /* SSHCommand.swift in Sources */,
 				CDCB849B42FBF3FABE4EE5B0 /* SSHConfigIndexer.swift in Sources */,

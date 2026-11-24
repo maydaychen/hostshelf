@@ -56,6 +56,10 @@ public final class TerminalLauncher {
         checkAvailability = availability
     }
 
+    func availability(for target: TerminalTarget) -> TerminalAvailability {
+        checkAvailability(target)
+    }
+
     static func availability(for target: TerminalTarget) -> TerminalAvailability {
         availability(for: target, applicationURL: NSWorkspace.shared.urlForApplication(withBundleIdentifier: target.bundleIdentifier))
     }

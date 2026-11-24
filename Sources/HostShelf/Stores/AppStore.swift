@@ -17,8 +17,12 @@ struct OperationNotice {
 @Observable
 final class AppStore {
     static let terminalPreferenceKey = "preferredTerminal"
+    static let editorPreferenceKey = "preferredEditor"
     var preferredTerminal: TerminalTarget {
         didSet { preferences.set(preferredTerminal.rawValue, forKey: Self.terminalPreferenceKey) }
+    }
+    var preferredEditor: EditorTarget {
+        didSet { preferences.set(preferredEditor.rawValue, forKey: Self.editorPreferenceKey) }
     }
     private(set) var snapshot = SSHIndexSnapshot()
     private(set) var sortedHosts: [HostEntry] = []
@@ -47,20 +51,35 @@ final class AppStore {
     @ObservationIgnored var excerptLoadDidFinish: (([SourceExcerpt]) -> Void)?
     #endif
 
-    private var hostsByAlias: [String: HostEntry] = [:]
+    private(set) var hostsByAlias: [String: HostEntry] = [:]
     @ObservationIgnored private let metadataStore: HostMetadataStore
     @ObservationIgnored private let metadataURL: URL
     @ObservationIgnored private let preferences: UserDefaults
     @ObservationIgnored private let launcher: TerminalLauncher
+    @ObservationIgnored let externalLauncher: ExternalActionLauncher
     @ObservationIgnored private let roots: [URL]?
     @ObservationIgnored private var annotationSaveTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private var statusTask: Task<Void, Never>?
     @ObservationIgnored private var visibleWindowCount = 0
 
-    init(preferences: UserDefaults = .standard, launcher: TerminalLauncher? = nil) {
+    init(
+        preferences: UserDefaults = .standard,
+        launcher: TerminalLauncher? = nil,
+        externalLauncher: ExternalActionLauncher? = nil
+    ) {
         self.preferences = preferences
         self.launcher = launcher ?? TerminalLauncher()
+        let resolvedExternalLauncher = externalLauncher ?? ExternalActionLauncher()
+        self.externalLauncher = resolvedExternalLauncher
         preferredTerminal = TerminalTarget(rawValue: preferences.string(forKey: Self.terminalPreferenceKey) ?? "") ?? .terminal
+        if let savedEditor = preferences.string(forKey: Self.editorPreferenceKey),
+           let parsedEditor = EditorTarget(rawValue: savedEditor) {
+            preferredEditor = parsedEditor
+        } else {
+            preferredEditor = EditorTarget.remoteSSHTargets.first {
+                resolvedExternalLauncher.isAvailable($0)
+            } ?? .systemDefault
+        }
         let environment = ProcessInfo.processInfo.environment
         var metadataURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("HostShelf", isDirectory: true)
@@ -89,7 +108,7 @@ final class AppStore {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         let filter = sidebarSelection ?? .all
         if filter == .all && query.isEmpty { return sortedHosts }
-        let hosts = sortedHosts.filter { host in
+        let filtered = sortedHosts.compactMap { host -> (host: HostEntry, score: Int)? in
             let annotation = annotation(for: host.alias)
             let matchesFilter: Bool
             switch filter {
@@ -100,14 +119,17 @@ final class AppStore {
             case .source(let path): matchesFilter = host.locations.contains { $0.filePath == path }
                 || host.declarations.contains { $0.location.filePath == path }
             }
-            guard matchesFilter else { return false }
-            guard !query.isEmpty else { return true }
-            let values = [host.alias, annotation.note, annotation.group]
-                + host.declaredValues(for: "hostname") + host.locations.map(\.filePath)
-                + host.declarations.map { $0.location.filePath }
-            return values.contains { $0.localizedStandardContains(query) }
+            guard matchesFilter else { return nil }
+            guard !query.isEmpty else { return (host, 0) }
+            guard let score = FuzzyMatcher.scoreHost(host, annotation: annotation, query: query) else { return nil }
+            return (host, score)
         }
-        return filter == .recent ? sortedRecentHosts(hosts) : hosts
+        if filter == .recent { return sortedRecentHosts(filtered.map(\.host)) }
+        if query.isEmpty { return filtered.map(\.host) }
+        return filtered.sorted { lhs, rhs in
+            if lhs.score != rhs.score { return lhs.score > rhs.score }
+            return lhs.host.alias.localizedStandardCompare(rhs.host.alias) == .orderedAscending
+        }.map(\.host)
     }
 
     var selectedHost: HostEntry? { selectedHostAlias.flatMap { hostsByAlias[$0] } }
@@ -269,7 +291,7 @@ final class AppStore {
         if persist(candidate) { reconcileSelection() }
     }
 
-    func connect(_ host: HostEntry) {
+    func connect(_ host: HostEntry, target overrideTarget: TerminalTarget? = nil) {
         guard !isConnecting, hostsByAlias[host.alias] != nil else { return }
         do {
             try SSHCommand.validate(alias: host.alias)
@@ -277,7 +299,7 @@ final class AppStore {
             errorNotice = OperationNotice(message: error.localizedDescription)
             return
         }
-        let target = preferredTerminal
+        let target = overrideTarget ?? preferredTerminal
         connectingAlias = host.alias
         errorNotice = nil
         statusTask?.cancel()
@@ -311,12 +333,7 @@ final class AppStore {
     func copyCommand(for alias: String) {
         do {
             let command = try SSHCommand.connectionCommand(for: alias)
-            NSPasteboard.general.clearContents()
-            guard NSPasteboard.general.setString(command, forType: .string) else {
-                errorNotice = OperationNotice(message: "无法访问剪贴板，请稍后重试。", copyAlias: alias)
-                return
-            }
-            showTransientStatus("已复制连接命令。")
+            copyToPasteboard(command, successMessage: "已复制连接命令。", errorCopyAlias: alias)
         } catch { errorNotice = OperationNotice(message: error.localizedDescription) }
     }
 
@@ -344,7 +361,7 @@ final class AppStore {
         if !isConnecting { statusMessage = nil }
     }
 
-    private func showTransientStatus(_ message: String) {
+    func showTransientStatus(_ message: String) {
         statusTask?.cancel()
         statusMessage = visibleWindowCount > 0 ? message : nil
         guard statusMessage != nil else { return }

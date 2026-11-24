@@ -2,11 +2,16 @@ import SwiftUI
 
 struct HostShelfMenu: View {
     var store: AppStore
+    var openQuickLauncher: () -> Void = {}
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         let favorites = store.favorites
         let recentHosts = store.recentHosts
+        Button("快速启动浮窗…") {
+            MainWindowAction.registerOpenWindow { openWindow(id: "main") }
+            openQuickLauncher()
+        }
         Button("打开主窗口") { MainWindowAction.show(using: openWindow) }
         if store.isConnecting { Text("正在交给终端…") }
         if store.errorNotice != nil {

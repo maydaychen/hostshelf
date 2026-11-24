@@ -7,18 +7,31 @@ enum SearchHighlight {
         var result = AttributedString(value)
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return result }
+
+        var matchedContiguous = false
         var searchRange = value.startIndex..<value.endIndex
         while let match = value.range(of: query, options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
                                       range: searchRange, locale: .current) {
             guard !match.isEmpty else { break }
-            if let start = AttributedString.Index(match.lowerBound, within: result),
-               let end = AttributedString.Index(match.upperBound, within: result) {
-                result[start..<end].backgroundColor = Color.accentColor.opacity(0.18)
-                result[start..<end].inlinePresentationIntent = .stronglyEmphasized
-            }
+            matchedContiguous = true
+            applyHighlight(range: match, in: &result)
             searchRange = match.upperBound..<value.endIndex
         }
+
+        if !matchedContiguous, let fuzzy = FuzzyMatcher.match(query: query, in: value) {
+            for range in fuzzy.ranges {
+                applyHighlight(range: range, in: &result)
+            }
+        }
         return result
+    }
+
+    private static func applyHighlight(range: Range<String.Index>, in result: inout AttributedString) {
+        if let start = AttributedString.Index(range.lowerBound, within: result),
+           let end = AttributedString.Index(range.upperBound, within: result) {
+            result[start..<end].backgroundColor = Color.accentColor.opacity(0.18)
+            result[start..<end].inlinePresentationIntent = .stronglyEmphasized
+        }
     }
 }
 

@@ -57,6 +57,12 @@ struct HostDeclarationsSection: View {
                                     .fixedSize()
                                     .accessibilityLabel("查看 \(store.displayPath(path)) 第 \(declaration.location.line) 行")
                                     .help("展开来源片段并定位第 \(declaration.location.line) 行")
+                                    .contextMenu {
+                                        Button("在 \(store.preferredEditor.displayName) 中打开第 \(declaration.location.line) 行") {
+                                            store.openSourceInEditor(path: path, line: declaration.location.line)
+                                        }
+                                        .disabled(!store.isEditorAvailable(store.preferredEditor))
+                                    }
                             }.font(.system(.callout, design: .monospaced))
                         }
                     }
@@ -69,6 +75,7 @@ struct HostDeclarationsSection: View {
 struct HostSourceExcerptsSection: View {
     var store: AppStore
     let sourcePaths: [String]
+    var preferredLines: [String: Int] = [:]
     let excerpts: [SourceExcerpt]
     let isLoadingExcerpts: Bool
     @Binding var expandedSources: Set<String>
@@ -105,6 +112,12 @@ struct HostSourceExcerptsSection: View {
                                 .font(.caption.monospaced())
                                 .fixedSize(horizontal: false, vertical: true)
                         }
+                        Button { store.openSourceInEditor(path: path, line: preferredLines[path] ?? 1) } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
+                        .accessibilityLabel("在编辑器中打开 \(store.displayPath(path))")
+                        .help("在 \(store.preferredEditor.displayName) 中打开并跳转到定义行")
+                        .disabled(!store.isEditorAvailable(store.preferredEditor))
                         Button { store.showInFinder(path) } label: {
                             Image(systemName: "folder")
                         }

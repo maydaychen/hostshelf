@@ -3,6 +3,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var store: AppStore
+    var hotKeyManager: GlobalHotKeyManager
+    var launchAtLogin: LaunchAtLoginService
 
     var body: some View {
         Form {
@@ -10,6 +12,23 @@ struct SettingsView: View {
                 LabeledContent("应用", value: "HostShelf")
                 LabeledContent("版本", value: AppIdentity.version)
                 LabeledContent("应用架构", value: AppIdentity.architecture)
+            }
+            Section("通用") {
+                Toggle("登录时自动启动 HostShelf", isOn: Binding(
+                    get: { launchAtLogin.isEnabled },
+                    set: { launchAtLogin.setEnabled($0) }
+                ))
+                .accessibilityIdentifier("launchAtLoginToggle")
+                if let error = launchAtLogin.errorMessage {
+                    Text(error).font(.caption).foregroundStyle(.orange)
+                } else if let status = launchAtLogin.statusMessage {
+                    Text(status).font(.caption).foregroundStyle(.secondary)
+                }
+                LabeledContent("快速启动快捷键") {
+                    HotKeyRecorderView(hotKeyManager: hotKeyManager)
+                }
+                Text("默认未绑定，设置后可在任意应用中呼出快速启动浮窗。")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("连接") {
                 Picker("默认终端", selection: $store.preferredTerminal) {
@@ -31,6 +50,17 @@ struct SettingsView: View {
                     Text("需要 Ghostty 1.3.0 或更新版本，并启用 AppleScript 支持。")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+                Picker("默认外部编辑器", selection: $store.preferredEditor) {
+                    ForEach(EditorTarget.allCases) { editor in
+                        let available = store.isEditorAvailable(editor)
+                        Text(available ? editor.displayName : "\(editor.displayName)（未安装）")
+                            .tag(editor)
+                            .selectionDisabled(!available)
+                    }
+                }
+                .accessibilityIdentifier("preferredEditorPicker")
+                Text("用于从声明或来源片段直接打开配置并跳转行号。")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("配置与数据") {
                 Text("默认读取 ~/.ssh/config、/etc/ssh/ssh_config 及其 Include 文件。")
@@ -42,8 +72,9 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 520, idealWidth: 520, maxWidth: 640, minHeight: 420, idealHeight: 520)
+        .frame(minWidth: 540, idealWidth: 540, maxWidth: 660, minHeight: 500, idealHeight: 580)
         .textSelection(.enabled)
+        .onAppear { launchAtLogin.refresh() }
     }
 }
 

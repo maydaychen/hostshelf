@@ -29,7 +29,15 @@ struct InteractionUICheck {
         guard chinese.runs.filter({ $0.inlinePresentationIntent == .stronglyEmphasized }).count == 2 else {
             throw Failure.check("repeated Chinese matches")
         }
-        print("PASS: search highlighting preserves Unicode text and handles repeated, folded, empty and absent matches")
+        let fuzzy = SearchHighlight.text("prod-ap-hk-01", query: "prodhk")
+        let fuzzyMatched = fuzzy.runs
+            .filter { $0.inlinePresentationIntent == .stronglyEmphasized }
+            .map { String(fuzzy[$0.range].characters) }
+            .joined()
+        guard String(fuzzy.characters) == "prod-ap-hk-01", fuzzyMatched == "prodhk" else {
+            throw Failure.check("fuzzy fallback highlight")
+        }
+        print("PASS: search highlighting preserves Unicode text and handles contiguous and fuzzy matches")
     }
 
     private static func checkAddressSummary() throws {

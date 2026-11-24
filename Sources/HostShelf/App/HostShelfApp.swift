@@ -5,6 +5,9 @@ import SwiftUI
 struct HostShelfApp: App {
     @NSApplicationDelegateAdaptor(HostShelfAppDelegate.self) private var delegate
     @State private var store = AppStore()
+    @State private var hotKeyManager = GlobalHotKeyManager()
+    @State private var launchAtLogin = LaunchAtLoginService()
+    @State private var quickLauncher = QuickLauncherController()
 
     var body: some Scene {
         WindowGroup("HostShelf", id: "main") {
@@ -13,17 +16,28 @@ struct HostShelfApp: App {
                 .background(MainWindowMarker { _ = store.flushAllAnnotations() })
                 .task {
                     delegate.store = store
+                    hotKeyManager.onTrigger = {
+                        quickLauncher.toggle(store: store) { MainWindowAction.showRegistered() }
+                    }
                     if !store.hasScanned { store.refresh() }
                 }
         }
         .defaultSize(width: 1120, height: 720)
-        .commands { HostShelfCommands(store: store) }
-
-        MenuBarExtra("HostShelf", systemImage: "terminal") {
-            HostShelfMenu(store: store)
+        .commands {
+            HostShelfCommands(store: store) {
+                quickLauncher.toggle(store: store) { MainWindowAction.showRegistered() }
+            }
         }
 
-        Settings { SettingsView(store: store) }
+        MenuBarExtra("HostShelf", systemImage: "terminal") {
+            HostShelfMenu(store: store) {
+                quickLauncher.toggle(store: store) { MainWindowAction.showRegistered() }
+            }
+        }
+
+        Settings {
+            SettingsView(store: store, hotKeyManager: hotKeyManager, launchAtLogin: launchAtLogin)
+        }
 
         Window("关于 HostShelf", id: "about") {
             AboutView()
@@ -70,8 +84,10 @@ final class HostShelfAppDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 enum MainWindowAction {
     private static let windows = NSHashTable<NSWindow>.weakObjects()
+    private static var openWindowCallback: (() -> Void)?
 
     static func register(_ window: NSWindow) { windows.add(window) }
+    static func registerOpenWindow(_ callback: @escaping () -> Void) { openWindowCallback = callback }
 
     static func activateExisting() -> Bool {
         let candidates = windows.allObjects.filter { $0.isVisible || $0.isMiniaturized }
@@ -85,8 +101,16 @@ enum MainWindowAction {
     }
 
     static func show(using openWindow: OpenWindowAction) {
+        registerOpenWindow { openWindow(id: "main") }
         if !activateExisting() {
             openWindow(id: "main")
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+
+    static func showRegistered() {
+        if !activateExisting(), let openWindowCallback {
+            openWindowCallback()
             NSApp.activate(ignoringOtherApps: true)
         }
     }
@@ -129,6 +153,7 @@ private struct MainWindowMarker: NSViewRepresentable {
 private struct HostShelfCommands: Commands {
     @Environment(\.openWindow) private var openWindow
     var store: AppStore
+    var openQuickLauncher: () -> Void
 
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
@@ -139,6 +164,10 @@ private struct HostShelfCommands: Commands {
                 .keyboardShortcut("0", modifiers: [.command])
         }
         CommandMenu("主机") {
+            Button("快速启动浮窗…") {
+                MainWindowAction.registerOpenWindow { openWindow(id: "main") }
+                openQuickLauncher()
+            }
             AllHostsMenu(store: store)
             Divider()
             Button("搜索主机") {
