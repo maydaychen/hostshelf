@@ -41,18 +41,25 @@ enum TerminalLaunchError: LocalizedError {
 @MainActor
 public final class TerminalLauncher {
     typealias ScriptExecutor = @Sendable (String, TerminalTarget) throws -> Void
+    typealias ModeScriptExecutor = @Sendable (String, TerminalTarget, SSHLaunchMode) throws -> Void
     private nonisolated static let executionQueue = DispatchQueue(label: "HostShelf.TerminalLauncher", qos: .userInitiated)
-    private let execute: ScriptExecutor
+    private let execute: ModeScriptExecutor
     private let checkAvailability: @MainActor (TerminalTarget) -> TerminalAvailability
 
     public init() {
-        execute = { alias, target in try Self.executeScript(alias: alias, target: target) }
+        execute = { alias, target, mode in try Self.executeScript(alias: alias, target: target, mode: mode) }
         checkAvailability = Self.availability(for:)
     }
 
     init(execute: @escaping ScriptExecutor,
          availability: @escaping @MainActor (TerminalTarget) -> TerminalAvailability) {
-        self.execute = execute
+        self.execute = { alias, target, _ in try execute(alias, target) }
+        checkAvailability = availability
+    }
+
+    init(executeWithMode: @escaping ModeScriptExecutor,
+         availability: @escaping @MainActor (TerminalTarget) -> TerminalAvailability) {
+        self.execute = executeWithMode
         checkAvailability = availability
     }
 
@@ -85,7 +92,14 @@ public final class TerminalLauncher {
     }
 
     // Only fixed application code enters the source. The host is an AppleEvent parameter.
-    nonisolated static func scriptSource(for target: TerminalTarget) -> String {
+    nonisolated static func scriptSource(for target: TerminalTarget, mode: SSHLaunchMode = .interactive) -> String {
+        let baseCommand: String
+        switch mode {
+        case .interactive:
+            baseCommand = "/usr/bin/ssh -- "
+        case .tunnelOnly:
+            baseCommand = "/usr/bin/ssh -N -- "
+        }
         let body: String
         switch target {
         case .terminal:
@@ -115,7 +129,7 @@ public final class TerminalLauncher {
         }
         return """
         on connectHost(hostAlias)
-            set connectionCommand to "/usr/bin/ssh -- " & quoted form of hostAlias
+            set connectionCommand to "\(baseCommand)" & quoted form of hostAlias
             \(body)
         end connectHost
         """
@@ -133,7 +147,7 @@ public final class TerminalLauncher {
         return event
     }
 
-    public func launch(alias: String, target: TerminalTarget = .terminal) async throws {
+    public func launch(alias: String, target: TerminalTarget = .terminal, mode: SSHLaunchMode = .interactive) async throws {
         try SSHCommand.validate(alias: alias)
         let availability = checkAvailability(target)
         guard availability.isAvailable else { throw TerminalLaunchError.unavailable(target, availability) }
@@ -141,7 +155,7 @@ public final class TerminalLauncher {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Self.executionQueue.async {
                 do {
-                    try autoreleasepool { try execute(alias, target) }
+                    try autoreleasepool { try execute(alias, target, mode) }
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -151,8 +165,8 @@ public final class TerminalLauncher {
     }
 
     // Script and descriptor objects remain confined to the serial execution queue.
-    private nonisolated static func executeScript(alias: String, target: TerminalTarget) throws {
-        guard let script = NSAppleScript(source: Self.scriptSource(for: target)) else {
+    private nonisolated static func executeScript(alias: String, target: TerminalTarget, mode: SSHLaunchMode) throws {
+        guard let script = NSAppleScript(source: Self.scriptSource(for: target, mode: mode)) else {
             throw TerminalLaunchError.scriptUnavailable(target)
         }
         var error: NSDictionary?

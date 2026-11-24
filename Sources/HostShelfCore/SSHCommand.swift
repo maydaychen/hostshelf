@@ -29,7 +29,15 @@ public enum SSHCommand {
 
     public static func connectionCommand(for alias: String) throws -> String {
         try validate(alias: alias)
-        let quoted = "'" + alias.replacingOccurrences(of: "'", with: "'\\''") + "'"
-        return "/usr/bin/ssh -- " + quoted
+        return "/usr/bin/ssh -- " + shellQuoted(alias)
+    }
+
+    public static func tunnelCommand(for alias: String) throws -> String {
+        try validate(alias: alias)
+        return "/usr/bin/ssh -N -- " + shellQuoted(alias)
+    }
+
+    private static func shellQuoted(_ alias: String) -> String {
+        "'" + alias.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 }

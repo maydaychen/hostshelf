@@ -73,6 +73,17 @@ struct ContentView: View {
             }
             Button("关闭", role: .cancel) { store.errorNotice = nil }
         } message: { notice in Text(notice.message) }
+        .alert(
+            "确认连接高危主机",
+            isPresented: Binding(get: { store.pendingConfirmation != nil }, set: { if !$0 { store.cancelPendingConnection() } }),
+            presenting: store.pendingConfirmation
+        ) { _ in
+            Button("确认连接", role: .destructive) { store.confirmPendingConnection() }
+            Button("取消", role: .cancel) { store.cancelPendingConnection() }
+        } message: { pending in
+            let action = pending.mode == .tunnelOnly ? "仅建立隧道（ssh -N）" : "连接"
+            Text("即将通过 \(pending.target.displayName) 对“\(pending.host.alias)”执行\(action)。\n\(pending.reason)")
+        }
     }
 }
 
@@ -102,6 +113,8 @@ private struct HostListView: View {
             return "最近发起"
         case .group(let group):
             return group
+        case .tag(let tag):
+            return "#\(tag)"
         case .source(let path):
             return URL(fileURLWithPath: path).lastPathComponent
         }
@@ -150,6 +163,7 @@ private struct HostListView: View {
                             subtitle: HostListPresentation.subtitle(for: host, annotation: annotation),
                             isFavorite: annotation.isFavorite,
                             isConditional: host.isConditional,
+                            isProtected: store.requiresConnectionConfirmation(for: host.alias),
                             query: trimmedQuery
                         )
                         .equatable()
@@ -218,6 +232,14 @@ private struct HostListView: View {
                 actionTitle: "查看全部主机",
                 action: { store.sidebarSelection = .all }
             )
+        case .tag(let tag):
+            HostEmptyStateCard(
+                icon: "tag",
+                title: "此标签暂无主机",
+                description: "可在主机详情的“编辑分组与备注”中添加“#\(tag)”标签。",
+                actionTitle: "查看全部主机",
+                action: { store.sidebarSelection = .all }
+            )
         case .source(let path):
             let filename = URL(fileURLWithPath: path).lastPathComponent
             HostEmptyStateCard(
@@ -281,6 +303,7 @@ private struct HostRow: View, Equatable {
     let subtitle: String
     let isFavorite: Bool
     let isConditional: Bool
+    let isProtected: Bool
     let query: String
 
     var body: some View {
@@ -291,6 +314,12 @@ private struct HostRow: View, Equatable {
                 subtitleText.font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer(minLength: 4)
+            if isProtected {
+                Image(systemName: "shield.lefthalf.filled")
+                    .foregroundStyle(.orange)
+                    .help("连接前需二次确认")
+                    .accessibilityLabel("连接前需二次确认")
+            }
             if isFavorite { Image(systemName: "star.fill").foregroundStyle(.yellow).accessibilityLabel("已收藏") }
             if isConditional { Image(systemName: "line.3.horizontal.decrease.circle").foregroundStyle(.secondary).help("包含条件配置") }
         }.padding(.vertical, 5).help(alias)

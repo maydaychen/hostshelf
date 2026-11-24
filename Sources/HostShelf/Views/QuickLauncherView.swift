@@ -71,7 +71,8 @@ struct QuickLauncherView: View {
                                     host: host,
                                     annotation: store.annotation(for: host.alias),
                                     query: query,
-                                    isSelected: activeHost?.alias == host.alias
+                                    isSelected: activeHost?.alias == host.alias,
+                                    isProtected: store.requiresConnectionConfirmation(for: host.alias)
                                 )
                                 .id(host.alias)
                                 .contentShape(Rectangle())
@@ -160,6 +161,7 @@ private struct QuickLauncherRow: View {
     let annotation: HostAnnotation
     let query: String
     let isSelected: Bool
+    let isProtected: Bool
 
     var body: some View {
         HStack(spacing: 10) {
@@ -178,6 +180,14 @@ private struct QuickLauncherRow: View {
                             .padding(.vertical, 2)
                             .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
                     }
+                    ForEach(Array(annotation.tags.prefix(3)), id: \.self) { tag in
+                        Text("#\(tag)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                    }
                 }
                 Text(SearchHighlight.text(HostListPresentation.subtitle(for: host, annotation: annotation), query: query))
                     .font(.caption)
@@ -185,6 +195,11 @@ private struct QuickLauncherRow: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
+            if isProtected {
+                Image(systemName: "shield.lefthalf.filled")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
             if annotation.lastLaunchedAt != nil {
                 Image(systemName: "clock")
                     .font(.caption)

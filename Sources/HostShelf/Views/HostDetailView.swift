@@ -46,6 +46,7 @@ struct HostDetailView: View {
                         overview(isWide: isWideOverview) { proxy.scrollTo("declarations", anchor: .top) }
                         HostMetadataSection(store: store, alias: host.alias)
                         Divider()
+                        HostTopologySection(store: store, host: host)
                         HostDeclarationsSection(store: store, host: host) { location in
                             scrollRequest?.invalidate()
                             expandedSources.insert(location.filePath)
@@ -154,6 +155,10 @@ struct HostDetailView: View {
         if hasConditions {
             Label("含条件声明", systemImage: "line.3.horizontal.decrease.circle")
                 .font(.caption).foregroundStyle(.secondary)
+        }
+        if store.requiresConnectionConfirmation(for: host.alias) {
+            Label("需连接确认", systemImage: "shield.lefthalf.filled")
+                .font(.caption).foregroundStyle(.orange)
         }
         Text("\(sourcePaths.count) 个声明来源").font(.caption).foregroundStyle(.secondary)
     }
@@ -267,6 +272,10 @@ struct HostMoreActionsMenuContent: View {
         Button("复制 User@HostName") { store.copyUserAtHost(host) }
             .disabled(ExternalActionBuilder.userAtHostAddress(for: host) == nil)
         Button("复制 SCP 命令模板") { store.copySCPCommand(host) }
+        Divider()
+        Button("仅建立 SSH 隧道（-N）") { store.connectTunnel(host) }
+            .disabled(store.isConnecting)
+        Button("复制隧道命令") { store.copyTunnelCommand(host) }
         Divider()
         Button("在 \(store.preferredEditor.displayName) 中打开配置") {
             store.openHostConfigInEditor(host)

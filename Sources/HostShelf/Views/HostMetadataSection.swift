@@ -7,6 +7,7 @@ struct HostMetadataSection: View {
     @State private var isEditing = false
     @State private var draftNote = ""
     @State private var draftGroup = ""
+    @State private var draftTagsText = ""
 
     private var annotation: HostAnnotation { store.annotation(for: alias) }
 
@@ -35,6 +36,14 @@ struct HostMetadataSection: View {
                     Text("未分组").tag("")
                     ForEach(store.groups, id: \.self) { Text($0).tag($0) }
                 }.disabled(!store.metadataWritable)
+                TextField("标签，例如 prod, hk（空格或逗号分隔）", text: Binding(get: { draftTagsText }, set: {
+                    draftTagsText = $0
+                    stageDraft()
+                }))
+                .textFieldStyle(.roundedBorder)
+                .disabled(!store.metadataWritable)
+                .accessibilityLabel("主机标签")
+                .accessibilityIdentifier("hostTags")
                 TextEditor(text: Binding(get: { draftNote }, set: {
                     draftNote = $0
                     stageDraft()
@@ -48,6 +57,12 @@ struct HostMetadataSection: View {
                 .disabled(!store.metadataWritable)
                 .accessibilityLabel("主机备注")
                 .accessibilityIdentifier("hostNote")
+                Toggle("连接前需要二次确认", isOn: Binding(
+                    get: { annotation.requiresConfirmation },
+                    set: { store.setRequiresConfirmation($0, for: alias) }
+                ))
+                .disabled(!store.metadataWritable)
+                .accessibilityIdentifier("requiresConfirmationToggle")
                 Text("停止输入后自动保存到本机；点击“完成”立即保存，不会写回 SSH 配置。")
                     .font(.caption).foregroundStyle(.secondary)
                 if store.pendingAnnotationAliases.contains(alias) {
@@ -62,6 +77,22 @@ struct HostMetadataSection: View {
                     .font(.callout)
                     .foregroundStyle(annotation.note.isEmpty ? Color.secondary : Color.primary)
                     .fixedSize(horizontal: false, vertical: true)
+                if !annotation.tags.isEmpty {
+                    TagFlowLayout(spacing: 6) {
+                        ForEach(annotation.tags, id: \.self) { tag in
+                            Text("#\(tag)")
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
+                        }
+                    }
+                }
+                if let reason = store.confirmationReason(for: alias) {
+                    Label(reason, systemImage: "shield.lefthalf.filled")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
             }
             if let launched = annotation.lastLaunchedAt {
                 Text("最近发起：\(launched.formatted(date: .abbreviated, time: .shortened))")
@@ -83,9 +114,59 @@ struct HostMetadataSection: View {
         let draft = store.unsavedAnnotations[alias] ?? annotation
         draftGroup = draft.group
         draftNote = draft.note
+        draftTagsText = draft.tags.joined(separator: ", ")
     }
 
     private func stageDraft() {
-        store.stageAnnotation(alias: alias, group: draftGroup, note: draftNote)
+        store.stageAnnotation(
+            alias: alias,
+            group: draftGroup,
+            note: draftNote,
+            tags: HostAnnotation.parseTagsInput(draftTagsText)
+        )
+    }
+}
+
+private struct TagFlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var rowWidth: CGFloat = 0
+        var totalHeight: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        var measuredWidth: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if rowWidth > 0 && rowWidth + spacing + size.width > maxWidth {
+                measuredWidth = max(measuredWidth, rowWidth)
+                totalHeight += rowHeight + spacing
+                rowWidth = size.width
+                rowHeight = size.height
+            } else {
+                rowWidth = rowWidth > 0 ? rowWidth + spacing + size.width : size.width
+                rowHeight = max(rowHeight, size.height)
+            }
+        }
+        measuredWidth = max(measuredWidth, rowWidth)
+        totalHeight += rowHeight
+        return CGSize(width: measuredWidth, height: totalHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + size.width > bounds.maxX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }

@@ -87,8 +87,56 @@ public struct HostAnnotation: Codable, Equatable, Sendable {
     public var note: String
     public var isFavorite: Bool
     public var lastLaunchedAt: Date?
-    public init(group: String = "", note: String = "", isFavorite: Bool = false, lastLaunchedAt: Date? = nil) {
-        self.group = group; self.note = note; self.isFavorite = isFavorite; self.lastLaunchedAt = lastLaunchedAt
+    public var tags: [String]
+    public var requiresConfirmation: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case group, note, isFavorite, lastLaunchedAt, tags, requiresConfirmation
+    }
+
+    public init(
+        group: String = "",
+        note: String = "",
+        isFavorite: Bool = false,
+        lastLaunchedAt: Date? = nil,
+        tags: [String] = [],
+        requiresConfirmation: Bool = false
+    ) {
+        self.group = group
+        self.note = note
+        self.isFavorite = isFavorite
+        self.lastLaunchedAt = lastLaunchedAt
+        self.tags = Self.normalizeTags(tags)
+        self.requiresConfirmation = requiresConfirmation
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        group = try container.decode(String.self, forKey: .group)
+        note = try container.decode(String.self, forKey: .note)
+        isFavorite = try container.decode(Bool.self, forKey: .isFavorite)
+        lastLaunchedAt = try container.decodeIfPresent(Date.self, forKey: .lastLaunchedAt)
+        let decodedTags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+        tags = Self.normalizeTags(decodedTags)
+        requiresConfirmation = try container.decodeIfPresent(Bool.self, forKey: .requiresConfirmation) ?? false
+    }
+
+    public static func normalizeTags(_ raw: [String]) -> [String] {
+        var seen: Set<String> = []
+        var result: [String] = []
+        for entry in raw {
+            var value = entry.trimmingCharacters(in: .whitespacesAndNewlines)
+            while value.hasPrefix("#") { value.removeFirst() }
+            value = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty, seen.insert(value).inserted else { continue }
+            result.append(value)
+        }
+        return result
+    }
+
+    public static func parseTagsInput(_ text: String) -> [String] {
+        let separators = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ",，"))
+        return normalizeTags(text.components(separatedBy: separators))
     }
 }
 
@@ -96,7 +144,29 @@ public struct MetadataDocument: Codable, Equatable, Sendable {
     public var schemaVersion: Int
     public var annotations: [String: HostAnnotation]
     public var groups: [String]
-    public init(schemaVersion: Int = 1, annotations: [String: HostAnnotation] = [:], groups: [String] = []) {
-        self.schemaVersion = schemaVersion; self.annotations = annotations; self.groups = groups
+    public var protectedGroups: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case schemaVersion, annotations, groups, protectedGroups
+    }
+
+    public init(
+        schemaVersion: Int = 1,
+        annotations: [String: HostAnnotation] = [:],
+        groups: [String] = [],
+        protectedGroups: [String] = []
+    ) {
+        self.schemaVersion = schemaVersion
+        self.annotations = annotations
+        self.groups = groups
+        self.protectedGroups = protectedGroups
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
+        annotations = try container.decode([String: HostAnnotation].self, forKey: .annotations)
+        groups = try container.decode([String].self, forKey: .groups)
+        protectedGroups = try container.decodeIfPresent([String].self, forKey: .protectedGroups) ?? []
     }
 }

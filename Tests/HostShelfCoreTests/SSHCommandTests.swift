@@ -61,4 +61,12 @@ final class SSHCommandTests: XCTestCase {
             }
         }
     }
+
+    func testTunnelCommandUsesDashNAndValidates() throws {
+        XCTAssertEqual(try SSHCommand.tunnelCommand(for: "production"), "/usr/bin/ssh -N -- 'production'")
+        XCTAssertEqual(try SSHCommand.tunnelCommand(for: "host'box"), "/usr/bin/ssh -N -- 'host'\\''box'")
+        XCTAssertThrowsError(try SSHCommand.tunnelCommand(for: "user@host")) {
+            XCTAssertEqual($0 as? SSHCommandError, .ambiguousAlias)
+        }
+    }
 }

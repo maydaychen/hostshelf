@@ -81,6 +81,7 @@ struct AppStoreInteractionCheck {
         print("PASS: input bursts stay in memory, debounce saves the latest draft, flush cancels timers and preserves favorites")
 
         try await verifyFuzzyAndExternalActions(root: root, config: config)
+        try await verifyTagsProtectionAndTunnel(root: root, config: config)
 
         guard let alpha = store.snapshot.hosts.first(where: { $0.alias == "alpha" }),
               let beta = store.snapshot.hosts.first(where: { $0.alias == "beta" }),
@@ -240,6 +241,91 @@ struct AppStoreInteractionCheck {
         try require(openedURLs.count == countBeforeError && actionStore.errorNotice?.message.contains("SSH URI") == true,
                     "ambiguous alias must fail Remote-SSH validation")
         print("PASS: fuzzy search, quick launcher ranking, one-off terminal override, editor file jump and Remote-SSH validations")
+    }
+
+    @MainActor
+    private static func verifyTagsProtectionAndTunnel(root: URL, config: URL) async throws {
+        let guardMetadata = root.appendingPathComponent("guard-metadata.json")
+        var doc = MetadataDocument(groups: ["prod"])
+        doc.annotations["beta"] = HostAnnotation(group: "prod")
+        try HostMetadataStore(fileURL: guardMetadata).save(doc)
+
+        setenv("HOSTSHELF_CONFIG_ROOTS", config.path, 1)
+        setenv("HOSTSHELF_METADATA_PATH", guardMetadata.path, 1)
+        let suite = "HostShelf.TopologyGuard.\(UUID().uuidString)"
+        let preferences = UserDefaults(suiteName: suite)!
+        defer { preferences.removePersistentDomain(forName: suite) }
+
+        let modeCalls = Calls()
+        let launcher = TerminalLauncher(
+            executeWithMode: { alias, target, mode in
+                modeCalls.record("\(alias):\(target.rawValue):\(mode.rawValue)")
+            },
+            availability: { _ in .available }
+        )
+        let store = AppStore(preferences: preferences, launcher: launcher)
+        var confirmationTriggered = 0
+        store.onConfirmationRequired = { confirmationTriggered += 1 }
+        store.refresh()
+        try await wait { store.hasScanned && !store.isRefreshing }
+
+        // Multi-tag staging, filtering, and fallback when removed.
+        store.stageAnnotation(alias: "alpha", group: "", note: "tagged", tags: ["prod", "hk"])
+        try require(store.flushAnnotation(alias: "alpha"), "tag annotation should flush")
+        try require(store.allTags == ["hk", "prod"], "allTags reflects saved normalized tags")
+        store.sidebarSelection = .tag("hk")
+        try require(store.visibleHosts.map(\.alias) == ["alpha"], "tag filter shows matching host")
+
+        store.stageAnnotation(alias: "alpha", group: "", note: "tagged", tags: ["prod"])
+        try require(store.flushAnnotation(alias: "alpha"), "tag removal flushes")
+        try require(store.allTags == ["prod"] && store.sidebarSelection == .all,
+                    "removing selected tag falls back to all hosts")
+
+        // Host-level confirmation guardrail.
+        let alpha = store.host(for: "alpha")!
+        store.setRequiresConfirmation(true, for: "alpha")
+        try require(store.requiresConnectionConfirmation(for: "alpha"), "host confirmation active")
+        store.connect(alpha)
+        try require(store.pendingConfirmation?.host.alias == "alpha"
+                    && confirmationTriggered == 1
+                    && modeCalls.aliases.isEmpty,
+                    "protected host must block direct launch and raise pending confirmation")
+        store.cancelPendingConnection()
+        try require(store.pendingConfirmation == nil && modeCalls.aliases.isEmpty,
+                    "cancelling confirmation must not invoke launcher")
+
+        store.connect(alpha)
+        store.confirmPendingConnection()
+        try await wait { !store.isConnecting }
+        try require(modeCalls.aliases == ["alpha:terminal:interactive"]
+                    && store.annotation(for: "alpha").lastLaunchedAt != nil,
+                    "confirming launches host once and records timestamp")
+
+        // Group-level confirmation guardrail.
+        let beta = store.host(for: "beta")!
+        store.toggleGroupProtection("prod")
+        try require(store.isGroupProtected("prod") && store.requiresConnectionConfirmation(for: "beta"),
+                    "group protection marks group members")
+        store.connect(beta)
+        try require(store.pendingConfirmation?.reason.contains("prod") == true,
+                    "group confirmation reason cites protected group")
+        store.cancelPendingConnection()
+
+        // Tunnel-only mode (-N) respects confirmation guardrails cleanly.
+        let gamma = store.host(for: "gamma")!
+        store.connectTunnel(gamma)
+        try await wait { !store.isConnecting }
+        try require(modeCalls.aliases.last == "gamma:terminal:tunnelOnly",
+                    "unprotected host opens tunnelOnly directly")
+
+        store.connectTunnel(alpha)
+        try require(store.pendingConfirmation?.mode == .tunnelOnly,
+                    "protected host guards tunnelOnly launches too")
+        store.confirmPendingConnection()
+        try await wait { !store.isConnecting }
+        try require(modeCalls.aliases.last == "alpha:terminal:tunnelOnly",
+                    "confirming tunnel launch executes tunnelOnly mode")
+        print("PASS: multi-tag filtering, host/group confirmation guardrails and ssh -N tunnel mode completed cleanly")
     }
 
     @MainActor

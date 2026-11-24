@@ -142,4 +142,36 @@ final class HostMetadataStoreTests: XCTestCase {
         let permissions = try FileManager.default.attributesOfItem(atPath: fileURL.path)[.posixPermissions] as? NSNumber
         XCTAssertEqual(permissions?.intValue, 0o600)
     }
+
+    func testLegacyV1MetadataDecodesWithDefaultTagsAndProtection() throws {
+        try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let legacy = Data(#"{"annotations":{"alpha":{"group":"工作","isFavorite":true,"note":"备注"}},"groups":["工作"],"schemaVersion":1}"#.utf8)
+        try legacy.write(to: fileURL)
+        let loaded = try HostMetadataStore(fileURL: fileURL).load()
+        XCTAssertEqual(loaded.protectedGroups, [])
+        XCTAssertEqual(loaded.annotations["alpha"]?.tags, [])
+        XCTAssertEqual(loaded.annotations["alpha"]?.requiresConfirmation, false)
+        XCTAssertEqual(loaded.annotations["alpha"]?.isFavorite, true)
+    }
+
+    func testTagsConfirmationAndProtectedGroupsRoundTrip() throws {
+        XCTAssertEqual(HostAnnotation.parseTagsInput(" #prod, hk  #db，prod "), ["prod", "hk", "db"])
+        let doc = MetadataDocument(
+            annotations: [
+                "prod-db": HostAnnotation(
+                    group: "生产",
+                    note: "核心库",
+                    tags: ["#prod", "prod", " db "],
+                    requiresConfirmation: true
+                ),
+            ],
+            groups: ["生产"],
+            protectedGroups: ["生产"]
+        )
+        let store = HostMetadataStore(fileURL: fileURL)
+        try store.save(doc)
+        let reloaded = try HostMetadataStore(fileURL: fileURL).load()
+        XCTAssertEqual(reloaded, doc)
+        XCTAssertEqual(reloaded.annotations["prod-db"]?.tags, ["prod", "db"])
+    }
 }

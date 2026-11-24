@@ -16,6 +16,7 @@ struct HostShelfApp: App {
                 .background(MainWindowMarker { _ = store.flushAllAnnotations() })
                 .task {
                     delegate.store = store
+                    store.onConfirmationRequired = { MainWindowAction.showRegistered() }
                     hotKeyManager.onTrigger = {
                         quickLauncher.toggle(store: store) { MainWindowAction.showRegistered() }
                     }

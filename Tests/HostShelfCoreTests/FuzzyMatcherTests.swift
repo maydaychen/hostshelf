@@ -41,6 +41,14 @@ final class FuzzyMatcherTests: XCTestCase {
         XCTAssertNil(FuzzyMatcher.scoreHost(host, annotation: note, query: "app 不存在"))
     }
 
+    func testScoreHostMatchesTagsWithOrWithoutHash() {
+        let host = HostEntry(alias: "db-01")
+        let note = HostAnnotation(tags: ["prod", "db-east"])
+        XCTAssertNotNil(FuzzyMatcher.scoreHost(host, annotation: note, query: "prod"))
+        XCTAssertNotNil(FuzzyMatcher.scoreHost(host, annotation: note, query: "#prod"))
+        XCTAssertNotNil(FuzzyMatcher.scoreHost(host, annotation: note, query: "dbeast"))
+    }
+
     func testScoreHostRequiresContiguousMatchOnSourcePaths() {
         let loc = SourceLocation(filePath: "/Users/demo/Apple/Mac/.tmp/work/config", line: 1)
         let host = HostEntry(alias: "beta", locations: [loc])

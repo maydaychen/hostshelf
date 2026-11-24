@@ -76,6 +76,12 @@ public enum FuzzyMatcher {
             if !annotation.group.isEmpty, let match = matchToken(token, in: annotation.group) {
                 consider(350 + match.score)
             }
+            let tagToken = token.hasPrefix("#") && token.count > 1 ? String(token.dropFirst()) : token
+            for tag in annotation.tags {
+                if let match = matchToken(tagToken, in: tag) {
+                    consider(350 + match.score)
+                }
+            }
             for path in sourcePaths {
                 if let match = bestContiguousMatch(token: token, in: path) {
                     consider(150 + match.score)

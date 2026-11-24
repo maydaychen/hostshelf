@@ -4,13 +4,21 @@ import HostShelfCore
 import Observation
 
 enum SidebarFilter: Hashable {
-    case all, favorites, recent, group(String), source(String)
+    case all, favorites, recent, group(String), tag(String), source(String)
 }
 
 struct OperationNotice {
     let message: String
     var copyAlias: String? = nil
     var offersAutomationSettings = false
+}
+
+struct PendingConnectionConfirmation: Identifiable, Equatable {
+    let id = UUID()
+    let host: HostEntry
+    let target: TerminalTarget
+    let mode: SSHLaunchMode
+    let reason: String
 }
 
 @MainActor
@@ -37,6 +45,8 @@ final class AppStore {
     var selectedHostAlias: String?
     var searchText = ""
     var errorNotice: OperationNotice?
+    var pendingConfirmation: PendingConnectionConfirmation?
+    @ObservationIgnored var onConfirmationRequired: (@MainActor () -> Void)?
     private(set) var statusMessage: String?
     private(set) var connectingAlias: String?
     var isConnecting: Bool { connectingAlias != nil }
@@ -55,7 +65,7 @@ final class AppStore {
     @ObservationIgnored private let metadataStore: HostMetadataStore
     @ObservationIgnored private let metadataURL: URL
     @ObservationIgnored private let preferences: UserDefaults
-    @ObservationIgnored private let launcher: TerminalLauncher
+    @ObservationIgnored let launcher: TerminalLauncher
     @ObservationIgnored let externalLauncher: ExternalActionLauncher
     @ObservationIgnored private let roots: [URL]?
     @ObservationIgnored private var annotationSaveTasks: [String: Task<Void, Never>] = [:]
@@ -116,6 +126,7 @@ final class AppStore {
             case .favorites: matchesFilter = annotation.isFavorite
             case .recent: matchesFilter = annotation.lastLaunchedAt != nil
             case .group(let group): matchesFilter = annotation.group == group
+            case .tag(let tag): matchesFilter = annotation.tags.contains(tag)
             case .source(let path): matchesFilter = host.locations.contains { $0.filePath == path }
                 || host.declarations.contains { $0.location.filePath == path }
             }
@@ -192,8 +203,13 @@ final class AppStore {
     }
 
     func reconcileSelection() {
-        if case .source(let path) = sidebarSelection, !hostSources.contains(path) {
+        switch sidebarSelection {
+        case .source(let path) where !hostSources.contains(path):
             sidebarSelection = .all
+        case .tag(let tag) where !allTags.contains(tag):
+            sidebarSelection = .all
+        default:
+            break
         }
         let hosts = visibleHosts
         if !hosts.contains(where: { $0.alias == selectedHostAlias }) {
@@ -212,22 +228,26 @@ final class AppStore {
         guard canDeleteGroup(name) else { return false }
         var candidate = metadata
         candidate.groups.removeAll { $0 == name }
+        candidate.protectedGroups.removeAll { $0 == name }
         guard persist(candidate) else { return false }
         if sidebarSelection == .group(name) { sidebarSelection = .all }
         reconcileSelection()
         return true
     }
 
-    func stageAnnotation(alias: String, group: String, note: String) {
+    func stageAnnotation(alias: String, group: String, note: String, tags: [String]? = nil) {
         annotationSaveTasks.removeValue(forKey: alias)?.cancel()
         pendingAnnotationAliases.remove(alias)
-        var draft = annotation(for: alias)
-        guard draft.group != group || draft.note != note else {
+        let saved = annotation(for: alias)
+        let normalizedTags = tags.map(HostAnnotation.normalizeTags) ?? saved.tags
+        guard saved.group != group || saved.note != note || saved.tags != normalizedTags else {
             unsavedAnnotations.removeValue(forKey: alias)
             return
         }
+        var draft = saved
         draft.group = group
         draft.note = note
+        draft.tags = normalizedTags
         unsavedAnnotations[alias] = draft
         pendingAnnotationAliases.insert(alias)
         annotationSaveTasks[alias] = Task { [weak self] in
@@ -243,8 +263,10 @@ final class AppStore {
         pendingAnnotationAliases.remove(alias)
         guard let draft = unsavedAnnotations[alias] else { return true }
         let saved = annotation(for: alias)
-        guard (draft.group == saved.group && draft.note == saved.note)
-                || saveAnnotation(alias: alias, group: draft.group, note: draft.note) else { return false }
+        let unchanged = draft.group == saved.group && draft.note == saved.note && draft.tags == saved.tags
+        guard unchanged || saveAnnotation(alias: alias, group: draft.group, note: draft.note, tags: draft.tags) else {
+            return false
+        }
         unsavedAnnotations.removeValue(forKey: alias)
         return true
     }
@@ -272,11 +294,12 @@ final class AppStore {
     }
 
     @discardableResult
-    func saveAnnotation(alias: String, group: String, note: String) -> Bool {
+    func saveAnnotation(alias: String, group: String, note: String, tags: [String]? = nil) -> Bool {
         var candidate = metadata
         var annotation = annotation(for: alias)
         annotation.group = group
         annotation.note = note
+        if let tags { annotation.tags = HostAnnotation.normalizeTags(tags) }
         candidate.annotations[alias] = annotation
         guard persist(candidate) else { return false }
         reconcileSelection()
@@ -291,7 +314,12 @@ final class AppStore {
         if persist(candidate) { reconcileSelection() }
     }
 
-    func connect(_ host: HostEntry, target overrideTarget: TerminalTarget? = nil) {
+    func connect(
+        _ host: HostEntry,
+        target overrideTarget: TerminalTarget? = nil,
+        mode: SSHLaunchMode = .interactive,
+        bypassConfirmation: Bool = false
+    ) {
         guard !isConnecting, hostsByAlias[host.alias] != nil else { return }
         do {
             try SSHCommand.validate(alias: host.alias)
@@ -300,20 +328,30 @@ final class AppStore {
             return
         }
         let target = overrideTarget ?? preferredTerminal
+        if !bypassConfirmation, let reason = confirmationReason(for: host.alias) {
+            pendingConfirmation = PendingConnectionConfirmation(
+                host: host, target: target, mode: mode, reason: reason
+            )
+            onConfirmationRequired?()
+            return
+        }
         connectingAlias = host.alias
         errorNotice = nil
         statusTask?.cancel()
-        statusMessage = "正在交给 \(target.displayName)…"
+        statusMessage = mode == .tunnelOnly ? "正在通过 \(target.displayName) 建立隧道…" : "正在交给 \(target.displayName)…"
         Task { [self] in
             defer { connectingAlias = nil }
             do {
-                try await launcher.launch(alias: host.alias, target: target)
+                try await launcher.launch(alias: host.alias, target: target, mode: mode)
                 var candidate = metadata
                 var annotation = annotation(for: host.alias)
                 annotation.lastLaunchedAt = Date()
                 candidate.annotations[host.alias] = annotation
                 if metadataWritable { _ = persist(candidate) }
-                showTransientStatus("已交给 \(target.displayName)，登录结果请在终端中查看。")
+                let success = mode == .tunnelOnly
+                    ? "已通过 \(target.displayName) 发起 SSH 隧道（-N）。"
+                    : "已交给 \(target.displayName)，登录结果请在终端中查看。"
+                showTransientStatus(success)
             } catch let error as TerminalLaunchError {
                 statusMessage = nil
                 let denied: Bool
@@ -408,7 +446,8 @@ final class AppStore {
         return path == home ? "~" : path.hasPrefix(home + "/") ? "~" + path.dropFirst(home.count) : path
     }
 
-    private func persist(_ candidate: MetadataDocument) -> Bool {
+    @discardableResult
+    func persist(_ candidate: MetadataDocument) -> Bool {
         guard metadataWritable else { return false }
         do {
             try metadataStore.save(candidate)

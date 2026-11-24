@@ -14,11 +14,26 @@ struct SidebarView: View {
             }
             Section {
                 ForEach(store.groups, id: \.self) { group in
-                    Label(group, systemImage: "folder").tag(SidebarFilter.group(group))
-                        .contextMenu {
-                            Button("删除空分组", role: .destructive) { _ = store.deleteEmptyGroup(group) }
-                                .disabled(!store.metadataWritable || !store.canDeleteGroup(group))
+                    HStack(spacing: 6) {
+                        Label(group, systemImage: "folder")
+                        if store.isGroupProtected(group) {
+                            Spacer(minLength: 4)
+                            Image(systemName: "shield.lefthalf.filled")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                                .help("已开启高危连接确认")
                         }
+                    }
+                    .tag(SidebarFilter.group(group))
+                    .contextMenu {
+                        Button(store.isGroupProtected(group) ? "取消高危连接确认" : "开启高危连接确认") {
+                            store.toggleGroupProtection(group)
+                        }
+                        .disabled(!store.metadataWritable)
+                        Divider()
+                        Button("删除空分组", role: .destructive) { _ = store.deleteEmptyGroup(group) }
+                            .disabled(!store.metadataWritable || !store.canDeleteGroup(group))
+                    }
                 }
                 Button { groupName = ""; showNewGroup = true } label: {
                     Label("新建分组", systemImage: "folder.badge.plus")
@@ -29,6 +44,14 @@ struct SidebarView: View {
                 .disabled(!store.metadataWritable)
                 .accessibilityIdentifier("newGroupButton")
             } header: { Text("分组") }
+            if !store.allTags.isEmpty {
+                Section("标签") {
+                    ForEach(store.allTags, id: \.self) { tag in
+                        Label("#\(tag)", systemImage: "tag")
+                            .tag(SidebarFilter.tag(tag))
+                    }
+                }
+            }
             if !store.hostSources.isEmpty {
                 Section("配置来源") {
                     ForEach(store.hostSources, id: \.self) { path in

@@ -1,5 +1,10 @@
 import Foundation
 
+public enum SSHLaunchMode: String, Sendable, Equatable {
+    case interactive
+    case tunnelOnly
+}
+
 public enum TerminalTarget: String, CaseIterable, Identifiable, Sendable {
     case terminal
     case iterm2

@@ -20,6 +20,7 @@
 		30152F142CDA2A19E9EC9950 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4C2D03137DE032DFF1CCD /* SettingsView.swift */; };
 		32F66FFEE1FE7DF93D3E44AC /* HostShelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0330998C1F2A0AB3AEFCC9FF /* HostShelfApp.swift */; };
 		3E33CFC23219258CC2321DCD /* HostShelfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */; };
+		509F0AA2FC925E8AFCB53ECE /* SSHTopology.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90911EF317F1DEFD96913D51 /* SSHTopology.swift */; };
 		53105A5BB6B2FC4F90D1E574 /* HostDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADF71D0BDF12B9C000BB1375 /* HostDetailView.swift */; };
 		5976FCCBA338EBDFC088C435 /* HostSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4FA232A812EB17E3423510 /* HostSearchField.swift */; };
 		5D2D35B67EF740792AC79F84 /* AppStore+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259E7F0828439F16F55992C6 /* AppStore+Actions.swift */; };
@@ -37,6 +38,8 @@
 		A10A922E0C57ADEFA76AE554 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18551E790DE48EC6FEBC5CC3 /* Models.swift */; };
 		A3C6ECC7DD01EEC4390B9327 /* GlobalHotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37508D6079AA1D658D21EB0 /* GlobalHotKeyManager.swift */; };
 		A564C9A163F801D7BFC5A9CB /* QuickLauncherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2963440447668856A01885 /* QuickLauncherView.swift */; };
+		ABAF6676C03D4A056E70E362 /* SSHTopologyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20A725F7B75C8D28AE41216 /* SSHTopologyTests.swift */; };
+		B780BD02F55A4D3B0067DE11 /* HostTopologySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE78089ADB48E59DA51FFD3 /* HostTopologySection.swift */; };
 		BABF77BD931CF5A066EC328E /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8A6B31958E97C1918A94B01 /* LaunchAtLoginService.swift */; };
 		BCA7C44104BC97006A151E49 /* SSHCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CE061F655D99290C006F3F /* SSHCommand.swift */; };
 		BDEB8C300F1C57B203D1E7A7 /* HostSourceSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3740798CA16283A79F26283E /* HostSourceSections.swift */; };
@@ -122,6 +125,7 @@
 		7EF75AB1753FBB1AA5930ECF /* HotKeyShortcutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyShortcutTests.swift; sourceTree = "<group>"; };
 		818A4ECF238475058F68BC77 /* SourceExcerptReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExcerptReader.swift; sourceTree = "<group>"; };
 		8C18377C836B498BD28C53E6 /* ConfigurationFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationFile.swift; sourceTree = "<group>"; };
+		90911EF317F1DEFD96913D51 /* SSHTopology.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHTopology.swift; sourceTree = "<group>"; };
 		913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HostShelfCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		938E28B63C4A6A7BAB056CD7 /* SSHConfigIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConfigIndexer.swift; sourceTree = "<group>"; };
 		9D7D7F2C7B1F26A56CB09A26 /* HostShelfCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HostShelfCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,7 +134,9 @@
 		AAD62C18AE93205B0FBDE7CF /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		ADF71D0BDF12B9C000BB1375 /* HostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostDetailView.swift; sourceTree = "<group>"; };
 		B850DED7FD893C3848BA65E9 /* RefreshConfigurationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshConfigurationButton.swift; sourceTree = "<group>"; };
+		BBE78089ADB48E59DA51FFD3 /* HostTopologySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostTopologySection.swift; sourceTree = "<group>"; };
 		C08A2547299173D6015ED004 /* SourceExcerptReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExcerptReaderTests.swift; sourceTree = "<group>"; };
+		C20A725F7B75C8D28AE41216 /* SSHTopologyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHTopologyTests.swift; sourceTree = "<group>"; };
 		D30532B5102C174B474CCE82 /* SSHCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHCommandTests.swift; sourceTree = "<group>"; };
 		EE4FA232A812EB17E3423510 /* HostSearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostSearchField.swift; sourceTree = "<group>"; };
 		F086F39A2A8E87DF1033B865 /* ExternalActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalActions.swift; sourceTree = "<group>"; };
@@ -191,6 +197,7 @@
 				C08A2547299173D6015ED004 /* SourceExcerptReaderTests.swift */,
 				D30532B5102C174B474CCE82 /* SSHCommandTests.swift */,
 				F45E4585AA9244F5F8E1FAEA /* SSHConfigIndexerTests.swift */,
+				C20A725F7B75C8D28AE41216 /* SSHTopologyTests.swift */,
 			);
 			path = HostShelfCoreTests;
 			sourceTree = "<group>";
@@ -235,6 +242,7 @@
 				67CE061F655D99290C006F3F /* SSHCommand.swift */,
 				938E28B63C4A6A7BAB056CD7 /* SSHConfigIndexer.swift */,
 				083868DC519BE3AC2E3D6BF5 /* SSHConfigLexer.swift */,
+				90911EF317F1DEFD96913D51 /* SSHTopology.swift */,
 				4C5FDA1B2EBE9747D81070A4 /* TerminalTarget.swift */,
 			);
 			path = HostShelfCore;
@@ -267,6 +275,7 @@
 				EE4FA232A812EB17E3423510 /* HostSearchField.swift */,
 				2EF1E88C4C72E5EC5B80744F /* HostShelfMenu.swift */,
 				3740798CA16283A79F26283E /* HostSourceSections.swift */,
+				BBE78089ADB48E59DA51FFD3 /* HostTopologySection.swift */,
 				10C7C1B4E2F68A813A49996B /* HotKeyRecorderView.swift */,
 				4D2963440447668856A01885 /* QuickLauncherView.swift */,
 				B850DED7FD893C3848BA65E9 /* RefreshConfigurationButton.swift */,
@@ -422,6 +431,7 @@
 				6D91FA504B11BD4CADCAE058 /* HotKeyShortcutTests.swift in Sources */,
 				0DD6EB5A149A09714CBC3F83 /* SSHCommandTests.swift in Sources */,
 				2B1F473B61067FD4A0C2A74E /* SSHConfigIndexerTests.swift in Sources */,
+				ABAF6676C03D4A056E70E362 /* SSHTopologyTests.swift in Sources */,
 				9B25D4698D7076C4DA76D368 /* SourceExcerptReaderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -442,6 +452,7 @@
 				32F66FFEE1FE7DF93D3E44AC /* HostShelfApp.swift in Sources */,
 				61B44E8EDE4550B82AED7D27 /* HostShelfMenu.swift in Sources */,
 				BDEB8C300F1C57B203D1E7A7 /* HostSourceSections.swift in Sources */,
+				B780BD02F55A4D3B0067DE11 /* HostTopologySection.swift in Sources */,
 				0DA9FF904D36EFC10A814A68 /* HotKeyRecorderView.swift in Sources */,
 				BABF77BD931CF5A066EC328E /* LaunchAtLoginService.swift in Sources */,
 				1269A2A6EC902C1F754E6E7C /* QuickLauncherController.swift in Sources */,
@@ -467,6 +478,7 @@
 				BCA7C44104BC97006A151E49 /* SSHCommand.swift in Sources */,
 				CDCB849B42FBF3FABE4EE5B0 /* SSHConfigIndexer.swift in Sources */,
 				C6D354CFE1D5392EF367D223 /* SSHConfigLexer.swift in Sources */,
+				509F0AA2FC925E8AFCB53ECE /* SSHTopology.swift in Sources */,
 				EEF8693E5F313EB8ACA27F5B /* SourceExcerptReader.swift in Sources */,
 				2B8B81663C7D4A2D0182B86A /* TerminalTarget.swift in Sources */,
 			);

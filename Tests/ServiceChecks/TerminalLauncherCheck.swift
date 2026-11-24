@@ -18,13 +18,16 @@ struct TerminalLauncherCheck {
         for target in TerminalTarget.allCases {
             let source = TerminalLauncher.scriptSource(for: target)
             try require(source.contains("quoted form of hostAlias") && source.contains("/usr/bin/ssh -- "), "fixed safe command")
+            let tunnelSource = TerminalLauncher.scriptSource(for: target, mode: .tunnelOnly)
+            try require(tunnelSource.contains("quoted form of hostAlias") && tunnelSource.contains("/usr/bin/ssh -N -- "), "fixed safe tunnel command")
+            try require(tunnelSource.contains(target.bundleIdentifier), "tunnel target bundle")
             try require(source.contains(target.bundleIdentifier), "target bundle")
             for alias in aliases {
                 let event = TerminalLauncher.connectionEvent(alias: alias)
                 let arguments = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))
                 try require(arguments?.numberOfItems == 1, "single argument")
                 try require(arguments?.atIndex(1)?.stringValue == alias, "alias preserved as data")
-                try require(!source.contains(alias), "alias must not enter script source")
+                try require(!source.contains(alias) && !tunnelSource.contains(alias), "alias must not enter script source")
             }
             for alias in ["", " \t", "host\ncommand", "host\u{7F}", "user@host", "SSH://host"] {
                 do {
