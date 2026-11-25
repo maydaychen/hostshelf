@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-当前准备发布版本为 **0.2.0（5）**，最低支持 macOS 14（标签 `v0.2.0`）。根据公开开源规范已下架原带证书的 `v0.1.3` Release，改为采用 `./script/package.sh --anonymous` 生成 ARM／Intel 独立匿名 DMG（外层 DMG 未签名，内部 App 与 Framework 仅采用本地 `ad-hoc` 签名：`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 证书或 Apple 公证），发布入口为 [v0.2.0 预发布 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.0)。全量推送前门禁与匿名双架构打包校验已通过；Intel／macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。
+当前发布版本为 **0.2.0（5）**，最低支持 macOS 14，基于公开提交 `570fdf0`（标签 `v0.2.0`）。根据公开开源规范已下架原带证书的 `v0.1.3` Release，改为采用 `./script/package.sh --anonymous` 生成 ARM／Intel 独立匿名 DMG（外层 DMG 未签名，内部 App 与 Framework 仅采用本地 `ad-hoc` 签名：`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 证书或 Apple 公证），发布入口为 [v0.2.0 预发布 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.0)。全量推送前门禁、匿名双架构打包及无认证下载复验均已通过；Intel／macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。
 
 | 范围 | 实现状态 |
 | --- | --- |
@@ -15,7 +15,7 @@
 
 ## 进行中与待验证事项
 
-- **0.2.0 实机复测**：已完成 `0.2.0（5）` 功能合入、全量隔离回归与匿名双架构构建；当前仅在 ARM／macOS 27 完成离线与离屏窗口回归，千台列表加载时在 `SwiftUI.OutlineListCoordinator` / `AppKit._cacheRowSpansInRange` 仍记录 1 条框架层自动行高重入警告，**Intel 物理机与 macOS 14 实机运行、真实双击／全局热键／系统登录项交互与公开 Release 无认证下载复验仍待完成**。
+- **0.2.0 实机复测**：已发布包含快速启动浮窗、模糊搜索、多动作协同、跳板机与端口转发洞察、多标签及高危连接确认的 `0.2.0（5）` 匿名公开预发布包，并已通过无认证公开下载与签名／隐私复验；当前仅在 ARM／macOS 27 完成离线与离屏窗口回归，千台列表加载时在 `SwiftUI.OutlineListCoordinator` / `AppKit._cacheRowSpansInRange` 仍记录 1 条框架层自动行高重入警告，**Intel 物理机与 macOS 14 实机运行、真实双击／全局热键／系统登录项交互及真实终端交接仍待实机验收**。
 
 - **交互修复收尾**：实现及隔离回归已通过，后台补验退出成功处理函数的保存与恢复。最小窗口、整窗明暗模式、长指令、设置大字／滚动、真实快捷键、真实关窗通知及退出事件分发仍待复测；在不影响当前桌面使用的约束下保留前台验收缺口，未以离屏截图替代视觉验收。
 - **终端交接**：三款终端的实际 Apple Events 允许、拒绝、恢复、新窗口和已有会话保护；Ghostty 原生选择与重启恢复的完整流程，以及 iTerm2 原生运行仍需验证。另待独立评估 `TerminalLauncher` 在后台串行队列调用主线程专用 `NSAppleScript` 的线程安全设计。参数与隔离回归通过不代表实际交接成功。
@@ -48,6 +48,7 @@
 
 ## 最近验证
 
+- 2026-11-25 21:32：独立 `anon-release-verifier` 子 Agent 在不携带认证头与 `Authorization` 凭据、零工作区写入的条件下完成公开验收：原 `v0.1.3` Release 已下架（两份 `v0.1.3` DMG 下载链接均返回 404，`/releases` 仅列 `v0.2.0`，仅 `v0.1.3` Git 标签源码归档页面仍存）；`maydaychen/hostshelf` 与 `v0.2.0` 预发布网页及 `expanded_assets` 无认证可访问（`api.github.com` 匿名 REST 接口因 60 次/小时限流返回 403，改以公开网页及响应头核对一致）；四附件无认证下载后 `shasum -a 256 --check` 全部通过；两份外层 DMG 均未签名且无公证票据，`hdiutil verify` 通过；只读挂载后确认无多余说明文本，两个 `HostShelf.app`（`0.2.0 (5)`）均通过 `--mode=--anonymous` 校验（`Signature=adhoc`、`TeamIdentifier=not set`、零 `Authority=`、Hardened Runtime 开启、`privacyAudit` 0 问题）。未执行 Intel／macOS 14／真实终端交互实机验收。
 - 2026-11-25 21:26：`0.2.0（5）` 通过 `./scripts/verify-before-push.sh` 全量 11 项推送门禁（Core 79 项单测、手动刷新 4 项、终端桥接 5 项、交互与千台列表回归 20 项、`arm64`／`x86_64` Debug 与 Release 构建、17 项隐私单测及 Release 路径隐私检查，54 个维护文件 0 行数警告）；`./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous` 确认双架构 DMG 均无外层签名、无公证票据、内部为 `Signature=adhoc`／`TeamIdentifier=not set`／无 `Authority=`、Hardened Runtime 开启且 `privacyAudit` 零问题。未执行 Intel／macOS 14 实机运行与前台 GUI 交互验收。
 - 2026-11-25 00:32：第二批新功能通过 Core 79 项单测（含 `SSHTopology`、`tunnelCommand`、旧版 `v1` 元数据兼容解码与标签模糊匹配）、手动刷新 4 项、终端桥接 5 项（含三款终端 `ssh -N` 隧道脚本生成）、交互与千台列表回归 20 项（含多标签筛选回退、主机／分组确认拦截与隧道模式校验）、`arm64`／`x86_64` Debug 双架构构建及 Harness `task` 门禁（54 个维护文件 0 行数警告、17 项二进制隐私单测）。未重跑 Release 打包／公证及前台 GUI／系统登录项／全局快捷键实机交互验收。
 - 2026-11-25 00:22：第一批新功能通过 Core 72 项单测（含 `FuzzyMatcher`、`ExternalActions`、`HotKeyShortcut`）、手动刷新 4 项、终端桥接 5 项、交互与千台列表回归 19 项（含模糊搜索高亮、浮窗排序、单次终端覆盖与注入编辑器／Remote-SSH 校验）、`arm64`／`x86_64` Debug 双架构构建及 Harness `task` 门禁（51 个维护文件 0 行数警告、17 项二进制隐私单测）。未重跑 Release 打包、公证、全局热键／开机自启真实系统弹窗与外部应用联调验收。

@@ -280,3 +280,12 @@ python3 scripts/harness/verify.py --mode task
 | HostShelf-0.2.0-macos-x86_64.dmg | `0d0f0f8b8939c890bd02c077c9e01b960684baf40f6b0e72a48f166cd2d490df` |
 
 尚未验证范围：Intel 原生运行、macOS 14 实机运行、真实外部编辑器／终端联动、全局快捷键与系统登录项实机审批；公开仓库上线后的无认证下载与校验结果见下节补充记录。
+
+### 独立无认证公开验收（2026-11-25 21:32）
+
+独立 `anon-release-verifier` 子 Agent 在不携带任何认证凭据且零工作区写入的条件下，完成在线与下载产物复核：
+
+- **旧包下架确认**：`v0.1.3` 原两份 DMG 下载地址均返回 `HTTP 404`，`/releases` 页面仅列 `v0.2.0`（`v0.1.3` Git 标签页面仅含源码归档，不含发行包资产）。
+- **公开访问与四附件下载**：未认证 `github.com` 仓库页、`v0.2.0` 预发布页（含 `Pre-release` 标记）及 `expanded_assets` 均返回 `HTTP 200`（注：本次匿名 `api.github.com` 接口因 60 次/小时未认证限流返回 `403`，元数据及 `Content-Length`／`sha256` 摘要已通过未认证 GitHub 网页及响应头核对一致）。四份附件无认证下载后 `shasum -a 256 --check` 与公布摘要完全匹配。
+- **匿名签名与隐私验证**：两份外层 DMG 均未签名（`code object is not signed at all`）且未装订公证票据，`hdiutil verify` 通过；只读挂载后目录内仅含 `HostShelf.app` 与 `Applications` 链接，两架构 `HostShelf.app`（`0.2.0 (5)`）均通过 `inspect_artifact.py --mode=--anonymous` 与 `codesign -dv` 核验（`Signature=adhoc`、`TeamIdentifier=not set`、零 `Authority=` 证书记录、Hardened Runtime 启用、`get-task-allow` 关闭、`privacyAudit` 扫描 9 个文件／2 个 Mach-O 零异常）。
+- **遗留缺口**：Intel 原生运行、macOS 14 实机运行、前台 GUI 视觉、真实外部应用联动、全局快捷键与登录项审批仍待实机验收。
