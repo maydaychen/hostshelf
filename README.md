@@ -10,12 +10,16 @@ GitHub 仓库：[maydaychen/hostshelf](https://github.com/maydaychen/hostshelf)�
 
 ## 安装
 
-从 [v0.1.3 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.1.3) 下载：
+从 [v0.2.0 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.0) 下载：
 
-- Apple Silicon Mac（M 系列）：`HostShelf-0.1.3-macos-arm64.dmg`。
-- Intel Mac：`HostShelf-0.1.3-macos-x86_64.dmg`。
+- Apple Silicon Mac（M 系列）：`HostShelf-0.2.0-macos-arm64.dmg`。
+- Intel Mac：`HostShelf-0.2.0-macos-x86_64.dmg`。
 
-打开对应 DMG，将 HostShelf 拖到 Applications。最低要求 macOS 14；两种架构的 App 与 DMG 均使用 Developer ID 签名，并已通过 Apple 公证及装订票据。Release 保留预发布标记，发布说明包含每份安装包的 SHA-256；此前下载的未公证包需重新下载。
+打开对应 DMG，将 HostShelf 拖到 Applications（最低要求 macOS 14）。公开版本采用匿名开源构建（外层 DMG 未签名，内部 App 为纯本地 `ad-hoc` 签名：`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 实名证书与 Apple 公证），Release 保留预发布标记并附带每份安装包的 `.sha256` 校验文件。
+
+因未接入 Apple 公证，首次打开时 macOS Gatekeeper 会弹出未验证提示：
+- **图形界面（推荐）**：点击弹窗「完成」，前往 **系统设置 → 隐私与安全性**，滑到底部点击 **「仍要打开」**。
+- **终端放行**：先对照 `.sha256` 核对文件哈希后，执行一次 `xattr -d com.apple.quarantine /Applications/HostShelf.app` 再打开。
 
 ## 开发
 
@@ -71,15 +75,13 @@ Debug 构建可使用 `open --env HOSTSHELF_CONFIG_ROOTS=<配置绝对路径> --
 ## 分架构打包
 
 ```sh
-./script/package.sh --preview
+./script/package.sh --anonymous
 ```
 
-本地试用包保存在 `dist/local-preview/`，仅临时签名、未经公证，不能作为正式发行包。ARM 与 Intel 包分别命名为 `HostShelf-<version>-macos-arm64.dmg` 和 `HostShelf-<version>-macos-x86_64.dmg`，两者是同一应用的替代包。
+公开开源打包模式（`--anonymous`）将构建结果输出至 `dist/release/`，生成 `HostShelf-<version>-macos-arm64.dmg` 与 `HostShelf-<version>-macos-x86_64.dmg`（两者是同一应用的替代包）。外层 DMG 保持未签名，内部 App 与 Framework 采用纯本地 `ad-hoc` 签名并启用 Hardened Runtime，不含 Developer ID 证书或 Apple 公证；本地带试用说明的预览打包可使用 `./script/package.sh --preview`（输出至 `dist/local-preview/`）。
 
-已有 Developer ID 身份时，可设置 `HOSTSHELF_SIGN_IDENTITY` 后执行 `./script/package.sh --developer-id`，生成 `dist/signed-preview/` 下的签名试用候选。该模式完成 Developer ID 签名和安全时间戳，不上传 Apple 公证，不能当作已公证的正式发行版。
+对实际安装包进行只读挂载、外层未签名／签名状态、架构、权限和 SHA-256 校验使用 `./script/verify_packages.sh --anonymous`（不带参数默认即 `--anonymous`；本地试用包改用 `--preview`，私有签名包改用 `--developer-id` 或 `--signed`）；检查不会安装或启动应用。
 
-对实际安装包进行只读挂载、架构、权限、签名和 SHA 校验使用 `./script/verify_packages.sh --developer-id`。公证发行包改用 `--signed`，临时签名包改用 `--preview`；检查不会安装或启动应用。
-
-获发行授权、准备 Developer ID 身份和 Keychain 中的 notarytool profile 后，可通过环境变量 `HOSTSHELF_SIGN_IDENTITY`、`HOSTSHELF_NOTARY_PROFILE` 调用 `./script/package.sh --signed`。该模式会上传 Apple 公证，输出位于 `dist/release/`；不得在未获对应授权时执行。每次打包使用独立暂存目录，脚本拒绝覆盖既有安装包。
+仅在本机或明确需要私有实名证书分发时，可设置 `HOSTSHELF_SIGN_IDENTITY` 执行 `./script/package.sh --developer-id`（输出至 `dist/signed-preview/`），或在同时配置 `HOSTSHELF_NOTARY_PROFILE` 后执行 `./script/package.sh --signed`。每次打包均使用独立暂存目录，脚本拒绝覆盖既有安装包。
 
 进度与验收见 [ROADMAP.md](ROADMAP.md)，实施边界见 [施工清单](goals/20261023-2210-hostshelf-v1.md)。

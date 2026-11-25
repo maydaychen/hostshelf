@@ -267,3 +267,16 @@ python3 scripts/harness/verify.py --mode task
 - 取得 macOS 14 Apple Silicon、macOS 14 Intel 测试环境；Intel 交叉编译不算 Intel 运行验收。
 - 补充干净 Mac／断网首次安装验收；本机签名、票据和 Gatekeeper 检查已通过，不得以关闭 Gatekeeper 作为验收通过。
 - 源码与两份已公证安装包已同步至 GitHub 公开仓库（`v0.1.3` 保持预发布标记），提交身份使用 GitHub 隐私邮箱；历史旧库与旧图不可读已通过独立匿名验收。公开发行仍需相应实机与终端授权验收。
+
+## 0.2.0 匿名开源发布切换（2026-11-25）
+
+2026-11-25 21:20 已下架公开仓库中原带 Developer ID 签名的 `v0.1.3` Release（GitHub API 与原 DMG 下载地址均确认返回 `404`），并按项目公开规范统一切换为双架构匿名开源构建（`./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous`）：外层 `.dmg` 不签名、不附带 Apple 公证票据，内部 `HostShelf.app` 与 `HostShelfCore.framework` 仅做纯本地 `ad-hoc` 签名（`Signature=adhoc`、`TeamIdentifier=not set`、无 `Authority=` 证书链），保留 Hardened Runtime 并禁用 `get-task-allow`。
+
+`0.2.0（5）` 已通过 `./scripts/verify-before-push.sh` 全量 11 项推送门禁与双架构匿名 DMG 只读校验：
+
+| 文件 | SHA-256 |
+| --- | --- |
+| HostShelf-0.2.0-macos-arm64.dmg | `ffda1fc81acc2c505e2369b793225d6c390e6ca262ae1eb9fda3a80ed01c884e` |
+| HostShelf-0.2.0-macos-x86_64.dmg | `0d0f0f8b8939c890bd02c077c9e01b960684baf40f6b0e72a48f166cd2d490df` |
+
+尚未验证范围：Intel 原生运行、macOS 14 实机运行、真实外部编辑器／终端联动、全局快捷键与系统登录项实机审批；公开仓库上线后的无认证下载与校验结果见下节补充记录。

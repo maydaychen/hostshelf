@@ -4,8 +4,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 source script/build_paths.sh
 MODE="${1:---preview}"
-case "$MODE" in --preview|--developer-id|--signed) ;; *) echo 'usage: package.sh [--preview|--developer-id|--signed]' >&2; exit 2;; esac
-if [[ "$MODE" != --preview ]]; then
+case "$MODE" in --preview|--anonymous|--developer-id|--signed) ;; *) echo 'usage: package.sh [--preview|--anonymous|--developer-id|--signed]' >&2; exit 2;; esac
+if [[ "$MODE" == --developer-id || "$MODE" == --signed ]]; then
   : "${HOSTSHELF_SIGN_IDENTITY:?需要 Developer ID Application 身份}"
 fi
 if [[ "$MODE" == --signed ]]; then
@@ -14,7 +14,7 @@ fi
 VERSION="$(sed -n "s/.*MARKETING_VERSION: '\([^']*\)'.*/\1/p" project.yml)"
 OUTPUT_DIR="$ROOT_DIR/dist/local-preview"
 if [[ "$MODE" == --developer-id ]]; then OUTPUT_DIR="$ROOT_DIR/dist/signed-preview"; fi
-if [[ "$MODE" == --signed ]]; then OUTPUT_DIR="$ROOT_DIR/dist/release"; fi
+if [[ "$MODE" == --anonymous || "$MODE" == --signed ]]; then OUTPUT_DIR="$ROOT_DIR/dist/release"; fi
 mkdir -p "$OUTPUT_DIR"
 for ARCH in arm64 x86_64; do
   ./script/build.sh "$ARCH" Release
@@ -29,7 +29,7 @@ for ARCH in arm64 x86_64; do
   python3 script/check_binary_privacy.py "$APP" > "$WORK_DIR/privacy.json"
   SIGN_IDENTITY='-'
   SIGN_OPTIONS=(--force --sign "$SIGN_IDENTITY" --options runtime)
-  if [[ "$MODE" != --preview ]]; then
+  if [[ "$MODE" == --developer-id || "$MODE" == --signed ]]; then
     SIGN_IDENTITY="$HOSTSHELF_SIGN_IDENTITY"
     SIGN_OPTIONS=(--force --sign "$SIGN_IDENTITY" --options runtime --timestamp)
   fi
@@ -48,7 +48,7 @@ for ARCH in arm64 x86_64; do
 本安装包为本地开发试用产物，采用临时签名，未完成 Developer ID 签名与 Apple 公证。
 不可将其作为正式发行包传播。Intel 与 macOS 14 运行、首次自动化权限尚需独立验收。
 NOTICE
-  else
+  elif [[ "$MODE" == --developer-id ]]; then
     cat > "$STAGE/签名与验收状态.txt" <<'NOTICE'
 签名：Developer ID Application。
 Apple 公证：未执行。本包为签名试用候选，尚未作为正式发行版发布。
@@ -58,7 +58,7 @@ NOTICE
   DMG="$OUTPUT_DIR/HostShelf-$VERSION-macos-$ARCH.dmg"
   if [[ -e "$DMG" ]]; then echo "安装包已存在，停止覆盖：$DMG" >&2; exit 1; fi
   hdiutil create -volname "HostShelf $ARCH" -srcfolder "$STAGE" -format UDZO "$DMG"
-  if [[ "$MODE" != --preview ]]; then
+  if [[ "$MODE" == --developer-id || "$MODE" == --signed ]]; then
     codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
   fi
   if [[ "$MODE" == --signed ]]; then

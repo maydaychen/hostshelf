@@ -2,20 +2,20 @@
 
 ## 当前状态
 
-当前发布版本为 **0.1.3（4）**，最低支持 macOS 14，基于公开基线 `2a9a81d`（标签 `v0.1.3`）。ARM／Intel 独立安装包均已 Developer ID 签名、通过 Apple 公证并装订票据，发布入口见 [v0.1.3 预发布 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.1.3)。公开仓库重建、sRGB 截图元数据清理、旧历史不可读性及四附件无认证下载哈希核对均已通过独立验收；千台列表离屏回归通过，Intel／macOS 14 实机运行和真实终端双击交接仍待复测。
+当前准备发布版本为 **0.2.0（5）**，最低支持 macOS 14（标签 `v0.2.0`）。根据公开开源规范已下架原带证书的 `v0.1.3` Release，改为采用 `./script/package.sh --anonymous` 生成 ARM／Intel 独立匿名 DMG（外层 DMG 未签名，内部 App 与 Framework 仅采用本地 `ad-hoc` 签名：`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 证书或 Apple 公证），发布入口为 [v0.2.0 预发布 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.0)。全量推送前门禁与匿名双架构打包校验已通过；Intel／macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。
 
 | 范围 | 实现状态 |
 | --- | --- |
-| 配置索引 | 只读汇总 Host 与递归 Include，提供来源片段、规则及诊断 |
-| 主机管理 | 搜索高亮、最近入口、空分组删除、收藏及备注防抖保存已实现 |
-| 原生界面 | 三栏窗口、菜单栏与全部主机二级菜单已实现；新增布局及焦点变化待整窗复测 |
-| 终端交接 | 支持 Terminal、iTerm2 或 Ghostty，串行后台执行，防重复提交，成功与错误反馈分离 |
-| 刷新 | 启动首次读取后仅支持手动刷新，已移除后台自动刷新 |
-| 分发 | ARM／Intel 独立构建，版本和应用身份一致，包含统一应用图标 |
+| 配置索引 | 只读汇总 Host 与递归 Include，侧栏仅列含主机来源，完整来源在诊断页查看 |
+| 主机管理 | 模糊搜索高亮、全局快速启动浮窗、多标签、最近入口、空分组删除、高危连接确认与防抖备注保存 |
+| 原生界面 | 三栏窗口、菜单栏与全部主机二级菜单、跳板机与端口转发洞察、快速启动浮窗均已实现；前台视觉仍待复测 |
+| 终端与外部协作 | 支持 Terminal／iTerm2／Ghostty 常规及 `ssh -N` 隧道交接，以及 VS Code／Cursor／Zed 跳行与 Remote-SSH |
+| 刷新与自启 | 启动首次读取后仅手动刷新；支持设置页 `SMAppService` 登录自启与 Carbon 全局热键录制 |
+| 分发 | ARM／Intel 独立匿名 `ad-hoc` 构建（外层 DMG 未签名），版本与应用身份一致 |
 
 ## 进行中与待验证事项
 
-- **0.1.3 实机复测**：已发布包含大列表性能优化、配置读取边界收敛与原生列表主操作的 `0.1.3（4）` 预发布包；当前仅在 ARM／macOS 27 完成离线与离屏窗口回归，千台列表加载时在 `SwiftUI.OutlineListCoordinator` / `AppKit._cacheRowSpansInRange` 仍记录 1 条框架层自动行高重入警告，**Intel 物理机单击／双击交接表现与 macOS 14 实机复测仍待执行**。
+- **0.2.0 实机复测**：已完成 `0.2.0（5）` 功能合入、全量隔离回归与匿名双架构构建；当前仅在 ARM／macOS 27 完成离线与离屏窗口回归，千台列表加载时在 `SwiftUI.OutlineListCoordinator` / `AppKit._cacheRowSpansInRange` 仍记录 1 条框架层自动行高重入警告，**Intel 物理机与 macOS 14 实机运行、真实双击／全局热键／系统登录项交互与公开 Release 无认证下载复验仍待完成**。
 
 - **交互修复收尾**：实现及隔离回归已通过，后台补验退出成功处理函数的保存与恢复。最小窗口、整窗明暗模式、长指令、设置大字／滚动、真实快捷键、真实关窗通知及退出事件分发仍待复测；在不影响当前桌面使用的约束下保留前台验收缺口，未以离屏截图替代视觉验收。
 - **终端交接**：三款终端的实际 Apple Events 允许、拒绝、恢复、新窗口和已有会话保护；Ghostty 原生选择与重启恢复的完整流程，以及 iTerm2 原生运行仍需验证。另待独立评估 `TerminalLauncher` 在后台串行队列调用主线程专用 `NSAppleScript` 的线程安全设计。参数与隔离回归通过不代表实际交接成功。
@@ -25,6 +25,7 @@
 
 ## 最近完成
 
+- 2026-11-25 21:26：下架原带证书的公开 `v0.1.3` Release（API 与旧附件链接已返回 404）；更新 `AGENTS.md`、`docs/privacy.md`、`README.md` 及打包校验脚本，确立 `--anonymous` 双架构匿名开源分发流程；升版至 `0.2.0（5）` 并生成 `dist/release/` 下未签名 DMG + `ad-hoc` 签名 `HostShelf.app`。
 - 2026-11-25 00:32：完成下一阶段第二批功能（未发版、未推送）：新增跳板机（`ProxyJump` 传递展开／可点击跳转／菱形与循环识别）及 `ProxyCommand` 静态拓扑洞察；新增 `LocalForward`／`RemoteForward`／`DynamicForward` 端口转发解析、打开本地 TCP 端口、`ssh -N` 仅建隧道与隧道命令复制；扩展兼容旧版 `v1` 元数据的多标签（`#标签` 侧栏筛选及模糊匹配）与主机／分组级高危连接二次确认。
 - 2026-11-25 00:22：完成下一阶段第一批功能（未发版、未推送）：新增全局快速启动浮窗（默认未绑定快捷键，设置页支持按键录制及一键启用推荐组合）、多字段模糊子序列匹配与快速排序、登录时自动启动开关（`SMAppService`），以及单次终端切换、外部编辑器（VS Code／Cursor／Zed／系统默认编辑器）定位打开与 Remote-SSH、复制 `HostName`／`User@HostName`／`scp` 模板等多动作连接入口。
 - 2026-11-24 22:58：侧栏“配置来源”改为仅展示包含主机的配置文件（涵盖仅拆出声明的被包含文件），零主机或未能读取的已扫描来源统一归入“配置诊断与规则”；状态栏补充已扫描及含主机来源提示，选中来源失去主机或移除时自动回退至“全部主机”。
@@ -47,6 +48,7 @@
 
 ## 最近验证
 
+- 2026-11-25 21:26：`0.2.0（5）` 通过 `./scripts/verify-before-push.sh` 全量 11 项推送门禁（Core 79 项单测、手动刷新 4 项、终端桥接 5 项、交互与千台列表回归 20 项、`arm64`／`x86_64` Debug 与 Release 构建、17 项隐私单测及 Release 路径隐私检查，54 个维护文件 0 行数警告）；`./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous` 确认双架构 DMG 均无外层签名、无公证票据、内部为 `Signature=adhoc`／`TeamIdentifier=not set`／无 `Authority=`、Hardened Runtime 开启且 `privacyAudit` 零问题。未执行 Intel／macOS 14 实机运行与前台 GUI 交互验收。
 - 2026-11-25 00:32：第二批新功能通过 Core 79 项单测（含 `SSHTopology`、`tunnelCommand`、旧版 `v1` 元数据兼容解码与标签模糊匹配）、手动刷新 4 项、终端桥接 5 项（含三款终端 `ssh -N` 隧道脚本生成）、交互与千台列表回归 20 项（含多标签筛选回退、主机／分组确认拦截与隧道模式校验）、`arm64`／`x86_64` Debug 双架构构建及 Harness `task` 门禁（54 个维护文件 0 行数警告、17 项二进制隐私单测）。未重跑 Release 打包／公证及前台 GUI／系统登录项／全局快捷键实机交互验收。
 - 2026-11-25 00:22：第一批新功能通过 Core 72 项单测（含 `FuzzyMatcher`、`ExternalActions`、`HotKeyShortcut`）、手动刷新 4 项、终端桥接 5 项、交互与千台列表回归 19 项（含模糊搜索高亮、浮窗排序、单次终端覆盖与注入编辑器／Remote-SSH 校验）、`arm64`／`x86_64` Debug 双架构构建及 Harness `task` 门禁（51 个维护文件 0 行数警告、17 项二进制隐私单测）。未重跑 Release 打包、公证、全局热键／开机自启真实系统弹窗与外部应用联调验收。
 - 2026-11-24 22:58：工作区源码通过 Core 61 项单测、手动刷新 4 项（含零主机来源回退与纯声明 Include 计数）、终端桥接 5 项、交互与千台列表回归 18 项（含双根配置零主机来源过滤断言）、`arm64`／`x86_64` Debug 双架构构建及 Harness `task` 门禁（38 个维护文件 0 行数警告、17 项二进制隐私单测）。未重跑 Release 打包、公证与前台 GUI 视觉验收。
