@@ -302,4 +302,5 @@ python3 scripts/harness/verify.py --mode task
 | `HostShelf-0.2.1-macos-arm64.dmg` | `97c0f8f0fabc478b35821271f87cdb2dc709a58e60e1ae727c42ee6e77efcad5` |
 | `HostShelf-0.2.1-macos-x86_64.dmg` | `a62de1ff244ec75739d9ad32d2e2922df113f64f0ca8476264e54dc4cbe7faae` |
 
+- **无认证公开下载复验（2026-11-27 16:12）**：已推送至 `maydaychen/hostshelf`（`main` 提交 `eab3a59`、标签 `v0.2.1`）并创建公开预发布 [v0.2.1 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.1)（`prerelease=true`、`draft=false`）。在不携带任何认证头的条件下确认 Release 页面返回 `HTTP 200`，直接下载四份公开附件后与本地 `dist/release/` 字节逐一比对完全一致（`cmp -s` 匹配），并经 `./script/verify_packages.sh --anonymous` 对下载包完成外层未签名、`hdiutil verify`、`inspect_artifact.py --mode=--anonymous` 与挂载内 `arm64` `--smoke-check` 复验，临时目录已清理。
 - **遗留缺口**：Intel 物理机运行、macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。
