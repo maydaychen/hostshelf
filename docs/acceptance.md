@@ -289,3 +289,17 @@ python3 scripts/harness/verify.py --mode task
 - **公开访问与四附件下载**：未认证 `github.com` 仓库页、`v0.2.0` 预发布页（含 `Pre-release` 标记）及 `expanded_assets` 均返回 `HTTP 200`（注：本次匿名 `api.github.com` 接口因 60 次/小时未认证限流返回 `403`，元数据及 `Content-Length`／`sha256` 摘要已通过未认证 GitHub 网页及响应头核对一致）。四份附件无认证下载后 `shasum -a 256 --check` 与公布摘要完全匹配。
 - **匿名签名与隐私验证**：两份外层 DMG 均未签名（`code object is not signed at all`）且未装订公证票据，`hdiutil verify` 通过；只读挂载后目录内仅含 `HostShelf.app` 与 `Applications` 链接，两架构 `HostShelf.app`（`0.2.0 (5)`）均通过 `inspect_artifact.py --mode=--anonymous` 与 `codesign -dv` 核验（`Signature=adhoc`、`TeamIdentifier=not set`、零 `Authority=` 证书记录、Hardened Runtime 启用、`get-task-allow` 关闭、`privacyAudit` 扫描 9 个文件／2 个 Mach-O 零异常）。
 - **遗留缺口**：Intel 原生运行、macOS 14 实机运行、前台 GUI 视觉、真实外部应用联动、全局快捷键与登录项审批仍待实机验收。
+
+## 0.2.1（6）匿名构建签名修复与发布（2026-11-27）
+
+2026-11-27 16:08（北京时间）：在复现并确认 `0.2.0（5）` 匿名包因 `ad-hoc` 签名同时开启 Hardened Runtime 导致加载 `HostShelfCore.framework` 触发 dyld `different Team IDs` 启动崩溃后，升版至 `0.2.1（6）` 并按匿名构建流程重新生成双架构预发布安装包：
+
+- **修复内容**：为 `--anonymous`／`--preview` 的 `ad-hoc` 签名关闭 Hardened Runtime（`ENABLE_HARDENED_RUNTIME = NO`，保留 `--developer-id`／`--signed` 实名模式启用 `--options runtime --timestamp`），并在 `HostShelfEntry` 与构建／打包／校验链路接入本机架构无界面 `--smoke-check` 动态库加载冒烟检查。
+- **双架构匿名包校验**：`./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous` 全部通过（外层 DMG 未签名、`hdiutil verify` 通过、两架构 `HostShelf.app` 均为 `0.2.1 (6)`、`Signature=adhoc`、`TeamIdentifier=not set`、零 `Authority=`、`runtimeEnabled: false`、`get-task-allow` 关闭、`privacyAudit` 扫描 9 个文件／2 个 Mach-O 零问题，并在只读挂载下执行本机 `arm64` `--smoke-check` 退出 0）。
+
+| 文件 | SHA-256 |
+| --- | --- |
+| `HostShelf-0.2.1-macos-arm64.dmg` | `97c0f8f0fabc478b35821271f87cdb2dc709a58e60e1ae727c42ee6e77efcad5` |
+| `HostShelf-0.2.1-macos-x86_64.dmg` | `a62de1ff244ec75739d9ad32d2e2922df113f64f0ca8476264e54dc4cbe7faae` |
+
+- **遗留缺口**：Intel 物理机运行、macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。

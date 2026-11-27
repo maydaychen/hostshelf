@@ -10,10 +10,10 @@ GitHub 仓库：[maydaychen/hostshelf](https://github.com/maydaychen/hostshelf)�
 
 ## 安装
 
-从 [v0.2.0 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.0) 下载：
+从 [v0.2.1 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.1) 下载：
 
-- Apple Silicon Mac（M 系列）：`HostShelf-0.2.0-macos-arm64.dmg`。
-- Intel Mac：`HostShelf-0.2.0-macos-x86_64.dmg`。
+- Apple Silicon Mac（M 系列）：`HostShelf-0.2.1-macos-arm64.dmg`。
+- Intel Mac：`HostShelf-0.2.1-macos-x86_64.dmg`。
 
 打开对应 DMG，将 HostShelf 拖到 Applications（最低要求 macOS 14）。公开版本采用匿名开源构建（外层 DMG 未签名，内部 App 为纯本地 `ad-hoc` 签名：`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 实名证书与 Apple 公证），Release 保留预发布标记并附带每份安装包的 `.sha256` 校验文件。
 

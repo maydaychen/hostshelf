@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-当前公开预发布版本为 **0.2.0（5）**，最低支持 macOS 14，基于公开提交 `570fdf0`（标签 `v0.2.0`）。该已上线匿名包因 `ad-hoc` 签名同时开启 Hardened Runtime（`--options runtime`），在启动加载内嵌 `HostShelfCore.framework` 时会触发 dyld Team ID 校验失败崩溃（已在 Intel 物理机和本机 ARM 实测复现）。当前工作区源码已完成修复：为 `--anonymous`／`--preview` 的 `ad-hoc` 构建关闭 Hardened Runtime（仅 `--developer-id`／`--signed` 实名签名模式启用），并在 `HostShelfEntry` 与构建／打包／校验脚本中补齐本机架构的无界面 `--smoke-check` 启动冒烟检查；尚待决定发版（如升版 `0.2.1`）后重新打包与替换公开 Release，Intel／macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。
+当前公开预发布版本为 **0.2.1（6）**，最低支持 macOS 14，修复了上一版 `0.2.0（5）` 匿名包因 `ad-hoc` 签名同时开启 Hardened Runtime 导致加载 `HostShelfCore.framework` 触发 dyld Team ID 校验失败崩溃的问题。采用 `./script/package.sh --anonymous` 生成 ARM／Intel 独立匿名 DMG（外层 DMG 未签名，内部 App 与 Framework 仅采用本地 `ad-hoc` 签名：`Signature=adhoc`、`TeamIdentifier=not set`，关闭 Hardened Runtime，不含 Developer ID 证书或 Apple 公证），并在构建／打包／校验链路中接入本机架构 `--smoke-check` 启动冒烟；发布入口为 [v0.2.1 预发布 Release](https://github.com/maydaychen/hostshelf/releases/tag/v0.2.1)。全量推送前门禁与匿名双架构打包校验均已通过；Intel／macOS 14 实机运行、前台 GUI／全局热键／系统登录项审批及真实终端交接仍待实机验收。
 
 | 范围 | 实现状态 |
 | --- | --- |
@@ -15,7 +15,7 @@
 
 ## 进行中与待验证事项
 
-- **0.2.0 崩溃修复与实机复测**：已上线的 `0.2.0（5）` 匿名公开预发布包经复现确认存在 `ad-hoc + Hardened Runtime` 启动崩溃缺陷；当前工作区已完成修复与本机 `arm64` Release／试用 DMG 冒烟验证，**待决定发版（如 `0.2.1`）后重新打包并更新公开 Release**。当前仍仅在 ARM／macOS 27 完成离线与离屏窗口回归，千台列表加载时在 `SwiftUI.OutlineListCoordinator` / `AppKit._cacheRowSpansInRange` 仍记录 1 条框架层自动行高重入警告，**Intel 物理机与 macOS 14 实机运行、真实双击／全局热键／系统登录项交互及真实终端交接仍待实机验收**。
+- **0.2.1 实机复测**：已生成并校验修复 `ad-hoc` 签名启动崩溃的 `0.2.1（6）` 匿名公开预发布包，并已通过本机 `arm64` Release 与挂载 DMG 下的 `--smoke-check` 动态库加载冒烟验证；当前仍仅在 ARM／macOS 27 完成离线与离屏窗口回归，千台列表加载时在 `SwiftUI.OutlineListCoordinator` / `AppKit._cacheRowSpansInRange` 仍记录 1 条框架层自动行高重入警告，**Intel 物理机与 macOS 14 实机运行、真实双击／全局热键／系统登录项交互及真实终端交接仍待实机验收**。
 
 - **交互修复收尾**：实现及隔离回归已通过，后台补验退出成功处理函数的保存与恢复。最小窗口、整窗明暗模式、长指令、设置大字／滚动、真实快捷键、真实关窗通知及退出事件分发仍待复测；在不影响当前桌面使用的约束下保留前台验收缺口，未以离屏截图替代视觉验收。
 - **终端交接**：三款终端的实际 Apple Events 允许、拒绝、恢复、新窗口和已有会话保护；Ghostty 原生选择与重启恢复的完整流程，以及 iTerm2 原生运行仍需验证。另待独立评估 `TerminalLauncher` 在后台串行队列调用主线程专用 `NSAppleScript` 的线程安全设计。参数与隔离回归通过不代表实际交接成功。
@@ -25,6 +25,7 @@
 
 ## 最近完成
 
+- 2026-11-27 16:08：升版至 `0.2.1（6）` 并按 `--anonymous` 匿名流程重新构建双架构 DMG，修复 `0.2.0` 匿名构建因 `ad-hoc` 签名启用 Hardened Runtime 导致的启动崩溃，同步更新 `README.md`、`docs/acceptance.md` 与 `ROADMAP.md` 准备 `v0.2.1` 预发布上线。
 - 2026-11-27 15:49：定位并修复 `0.2.0` 匿名构建因 `ad-hoc` 签名开启 Hardened Runtime 导致加载 `HostShelfCore.framework` 触发 dyld `different Team IDs` 崩溃的问题：在 `project.yml`（并同步重生成工程）、`script/package.sh` 与 `script/inspect_artifact.py` 中为 `--anonymous`／`--preview` 关闭 `--options runtime`（保留 `--developer-id`／`--signed` 实名模式的 Hardened Runtime），新增 `HostShelfEntry --smoke-check` 入口并在 `script/build.sh`、`script/package.sh`、`script/verify_packages.sh` 接入本机架构无界面动态库加载冒烟校验；同步更新 `AGENTS.md`、`README.md` 与 `docs/privacy.md`（未升版或重新发布 `dist/release/`）。
 - 2026-11-25 21:26：下架原带证书的公开 `v0.1.3` Release（API 与旧附件链接已返回 404）；更新 `AGENTS.md`、`docs/privacy.md`、`README.md` 及打包校验脚本，确立 `--anonymous` 双架构匿名开源分发流程；升版至 `0.2.0（5）` 并生成 `dist/release/` 下未签名 DMG + `ad-hoc` 签名 `HostShelf.app`。
 - 2026-11-25 00:32：完成下一阶段第二批功能（未发版、未推送）：新增跳板机（`ProxyJump` 传递展开／可点击跳转／菱形与循环识别）及 `ProxyCommand` 静态拓扑洞察；新增 `LocalForward`／`RemoteForward`／`DynamicForward` 端口转发解析、打开本地 TCP 端口、`ssh -N` 仅建隧道与隧道命令复制；扩展兼容旧版 `v1` 元数据的多标签（`#标签` 侧栏筛选及模糊匹配）与主机／分组级高危连接二次确认。
@@ -49,6 +50,7 @@
 
 ## 最近验证
 
+- 2026-11-27 16:08：`0.2.1（6）` 完成 `./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous` 双架构匿名打包及校验（外层 DMG 未签名、无公证票据、`hdiutil verify` 通过；内部为 `0.2.1 (6)`、`Signature=adhoc`、`TeamIdentifier=not set`、无 `Authority=`、`runtimeEnabled: false`、`privacyAudit` 零问题，并在只读挂载下通过本机 `arm64` `--smoke-check`）及全量推送前门禁。Intel 物理机、macOS 14 实机与前台 GUI 交互仍待验收。
 - 2026-11-27 15:49：修复后源码通过 `./scripts/verify-before-push.sh` 全量 11 项门禁（Core 79 项单测、手动刷新、终端桥接、交互与千台列表回归、`arm64`／`x86_64` Debug 与 Release 构建、17 项隐私单测及 Release 路径隐私检查，54 个维护文件 0 行数警告，且 `arm64` Release 构建执行 `--smoke-check` 退出 0）；`./script/package.sh --preview` 与 `./script/verify_packages.sh --preview` 完成双架构预览包打包、只读挂载校验与挂载内 `arm64` `--smoke-check`（均已清理临时包），`inspect_artifact.py` 以 `--mode=--preview` 与 `--mode=--anonymous` 检查双架构产物均确认 `adhocSigned: true`、`runtimeEnabled: false`、`privacyAudit.status: passed`；对旧 `0.2.0` `arm64` DMG 执行 `inspect_artifact.py --mode=--anonymous` 负向回归按预期因检测到 Hardened Runtime 失败退出。仍缺 Intel 物理机运行及重打包发版验收。
 - 2026-11-25 21:32：独立 `anon-release-verifier` 子 Agent 在不携带认证头与 `Authorization` 凭据、零工作区写入的条件下完成公开验收：原 `v0.1.3` Release 已下架（两份 `v0.1.3` DMG 下载链接均返回 404，`/releases` 仅列 `v0.2.0`，仅 `v0.1.3` Git 标签源码归档页面仍存）；`maydaychen/hostshelf` 与 `v0.2.0` 预发布网页及 `expanded_assets` 无认证可访问（`api.github.com` 匿名 REST 接口因 60 次/小时限流返回 403，改以公开网页及响应头核对一致）；四附件无认证下载后 `shasum -a 256 --check` 全部通过；两份外层 DMG 均未签名且无公证票据，`hdiutil verify` 通过；只读挂载后确认无多余说明文本，两个 `HostShelf.app`（`0.2.0 (5)`）均通过 `--mode=--anonymous` 校验（`Signature=adhoc`、`TeamIdentifier=not set`、零 `Authority=`、Hardened Runtime 开启、`privacyAudit` 0 问题）。未执行 Intel／macOS 14／真实终端交互实机验收。
 - 2026-11-25 21:26：`0.2.0（5）` 通过 `./scripts/verify-before-push.sh` 全量 11 项推送门禁（Core 79 项单测、手动刷新 4 项、终端桥接 5 项、交互与千台列表回归 20 项、`arm64`／`x86_64` Debug 与 Release 构建、17 项隐私单测及 Release 路径隐私检查，54 个维护文件 0 行数警告）；`./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous` 确认双架构 DMG 均无外层签名、无公证票据、内部为 `Signature=adhoc`／`TeamIdentifier=not set`／无 `Authority=`、Hardened Runtime 开启且 `privacyAudit` 零问题。未执行 Intel／macOS 14 实机运行与前台 GUI 交互验收。
@@ -70,7 +72,6 @@
 - 2026-10-25 14:17：公证 ARM 版实际运行验收通过，覆盖启动、首次索引、主窗口响应及升级后的配置、元数据和终端偏好保留。
 - 2026-10-25 13:54：两种架构的 App／DMG 独立静态验收通过，覆盖架构、最低系统、严格签名、公证票据、Gatekeeper 和路径隐私；Release 附件与认证下载文件的 SHA-256 一致。
 - 2026-10-25 09:23：47 条 Core 测试、17 条隐私回归、手动刷新及终端隔离回归、ARM／Intel Debug 与 Release 构建及 Harness 检查通过。
-- 2026-10-24 01:03：已测界面流程通过，覆盖最小窗口、明暗模式、长名称、来源定位、备注成功／失败路径、窗口恢复、`⌘F`／`⌘R` 焦点及无选择时的 `⌘Return`。
 
 以上为各检查点已取得的证据摘要；本轮交互修复仍缺整窗运行验收。完整范围与限制见[验收记录](docs/acceptance.md)。
 
