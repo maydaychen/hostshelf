@@ -1,7 +1,19 @@
 import AppKit
+import HostShelfCore
 import SwiftUI
 
 @main
+@MainActor
+enum HostShelfEntry {
+    static func main() {
+        if CommandLine.arguments.contains("--smoke-check") {
+            precondition(!EditorTarget.allCases.isEmpty)
+            exit(0)
+        }
+        HostShelfApp.main()
+    }
+}
+
 struct HostShelfApp: App {
     @NSApplicationDelegateAdaptor(HostShelfAppDelegate.self) private var delegate
     @State private var store = AppStore()

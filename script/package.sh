@@ -28,13 +28,17 @@ for ARCH in arm64 x86_64; do
   APP="$STAGE/HostShelf.app"
   python3 script/check_binary_privacy.py "$APP" > "$WORK_DIR/privacy.json"
   SIGN_IDENTITY='-'
-  SIGN_OPTIONS=(--force --sign "$SIGN_IDENTITY" --options runtime)
+  # ad-hoc 签名无 TeamIdentifier，开启 Hardened Runtime 会导致 Library Validation 拦截内嵌框架加载。
+  SIGN_OPTIONS=(--force --sign "$SIGN_IDENTITY")
   if [[ "$MODE" == --developer-id || "$MODE" == --signed ]]; then
     SIGN_IDENTITY="$HOSTSHELF_SIGN_IDENTITY"
     SIGN_OPTIONS=(--force --sign "$SIGN_IDENTITY" --options runtime --timestamp)
   fi
   codesign "${SIGN_OPTIONS[@]}" "$APP/Contents/Frameworks/HostShelfCore.framework"
   codesign "${SIGN_OPTIONS[@]}" --entitlements Config/HostShelf.entitlements "$APP"
+  if [[ "$ARCH" == "$(uname -m)" ]]; then
+    "$APP/Contents/MacOS/HostShelf" --smoke-check
+  fi
   if [[ "$MODE" == --signed ]]; then
     ZIP="$WORK_DIR/HostShelf.zip"
     ditto -c -k --keepParent "$APP" "$ZIP"

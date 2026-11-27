@@ -24,7 +24,7 @@ HostShelf 是 macOS 14+ 的 SSH 主机目录与终端启动器。SSH 配置仅�
 
 ARM 和 Intel 分别构建、验证、打包，保持相同版本及应用身份；不交付 Universal 包代替两个安装包。不得把 Intel 交叉编译结果说成 Intel 运行验收。
 
-Release 构建须映射源码及编译目录，剥离调试路径记录；最终签名前检查整个 App 不含个人主目录、系统临时构建路径、随包 dSYM 或调试映射。Core 的动态导出必须保留。公开开源分发统一采用 `./script/package.sh --anonymous` 生成分架构（`arm64`、`x86_64`）匿名构建：外层 DMG 不签名，内部 App 与 Framework 仅做本地 `ad-hoc` 签名（`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 证书或 Apple 公证），并由 `./script/verify_packages.sh --anonymous` 与 `script/check_binary_privacy.py` 复验。仅在明确需要本机／私有签名分发时才显式使用 `--developer-id` 或 `--signed`，Developer ID 证书的合法身份信息仅属于对应显式签名模式。
+Release 构建须映射源码及编译目录，剥离调试路径记录；最终签名前检查整个 App 不含个人主目录、系统临时构建路径、随包 dSYM 或调试映射。Core 的动态导出必须保留。公开开源分发统一采用 `./script/package.sh --anonymous` 生成分架构（`arm64`、`x86_64`）匿名构建：外层 DMG 不签名，内部 App 与 Framework 仅做本地 `ad-hoc` 签名（`Signature=adhoc`、`TeamIdentifier=not set`，不含 Developer ID 证书或 Apple 公证）并关闭 Hardened Runtime（`--options runtime`），以免无 Team ID 时触发 Library Validation 拦截内嵌框架；构建、打包与校验阶段对本机架构执行无界面 `--smoke-check` 启动冒烟，并由 `./script/verify_packages.sh --anonymous` 与 `script/check_binary_privacy.py` 复验。仅在明确需要本机／私有签名分发时才显式使用 `--developer-id` 或 `--signed`，在对应模式中启用 Hardened Runtime（`--options runtime --timestamp`），Developer ID 证书的合法身份信息仅属于对应显式签名模式。
 
 ## 工作流与验证
 

@@ -78,9 +78,9 @@ Debug 构建可使用 `open --env HOSTSHELF_CONFIG_ROOTS=<配置绝对路径> --
 ./script/package.sh --anonymous
 ```
 
-公开开源打包模式（`--anonymous`）将构建结果输出至 `dist/release/`，生成 `HostShelf-<version>-macos-arm64.dmg` 与 `HostShelf-<version>-macos-x86_64.dmg`（两者是同一应用的替代包）。外层 DMG 保持未签名，内部 App 与 Framework 采用纯本地 `ad-hoc` 签名并启用 Hardened Runtime，不含 Developer ID 证书或 Apple 公证；本地带试用说明的预览打包可使用 `./script/package.sh --preview`（输出至 `dist/local-preview/`）。
+公开开源打包模式（`--anonymous`）将构建结果输出至 `dist/release/`，生成 `HostShelf-<version>-macos-arm64.dmg` 与 `HostShelf-<version>-macos-x86_64.dmg`（两者是同一应用的替代包）。外层 DMG 保持未签名，内部 App 与 Framework 采用纯本地 `ad-hoc` 签名（关闭 Hardened Runtime，避免无 Team ID 时 Library Validation 阻止加载内嵌框架），不含 Developer ID 证书或 Apple 公证；本地带试用说明的预览打包可使用 `./script/package.sh --preview`（输出至 `dist/local-preview/`）。
 
-对实际安装包进行只读挂载、外层未签名／签名状态、架构、权限和 SHA-256 校验使用 `./script/verify_packages.sh --anonymous`（不带参数默认即 `--anonymous`；本地试用包改用 `--preview`，私有签名包改用 `--developer-id` 或 `--signed`）；检查不会安装或启动应用。
+对实际安装包进行只读挂载、外层未签名／签名状态、架构、权限和 SHA-256 校验使用 `./script/verify_packages.sh --anonymous`（不带参数默认即 `--anonymous`；本地试用包改用 `--preview`，私有签名包改用 `--developer-id` 或 `--signed`）；检查不会安装应用或打开图形窗口，对当前本机架构会额外执行无界面的动态库加载冒烟检查（`--smoke-check`），不读取 SSH 配置。
 
 仅在本机或明确需要私有实名证书分发时，可设置 `HOSTSHELF_SIGN_IDENTITY` 执行 `./script/package.sh --developer-id`（输出至 `dist/signed-preview/`），或在同时配置 `HOSTSHELF_NOTARY_PROFILE` 后执行 `./script/package.sh --signed`。每次打包均使用独立暂存目录，脚本拒绝覆盖既有安装包。
 

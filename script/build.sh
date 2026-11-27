@@ -28,4 +28,7 @@ xcodebuild -project HostShelf.xcodeproj -scheme HostShelf -configuration "$CONFI
 if [[ "$CONFIGURATION" == Release ]]; then
   python3 script/check_binary_privacy.py \
     "$HOSTSHELF_TOOL_CACHE/build-$ARCH-Release/Build/Products/Release/HostShelf.app"
+  if [[ "$ARCH" == "$(uname -m)" ]]; then
+    "$HOSTSHELF_TOOL_CACHE/build-$ARCH-Release/Build/Products/Release/HostShelf.app/Contents/MacOS/HostShelf" --smoke-check
+  fi
 fi

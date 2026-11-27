@@ -38,6 +38,9 @@ for ARCH in arm64 x86_64; do
   trap 'hdiutil detach "$MOUNT" >/dev/null 2>&1 || true; rmdir "$MOUNT" 2>/dev/null || true' EXIT
   hdiutil attach -readonly -nobrowse -mountpoint "$MOUNT" "$DMG"
   python3 script/inspect_artifact.py "$MOUNT/HostShelf.app" "$ARCH" --mode="$MODE" > "$OUTPUT_DIR/artifact-$ARCH.json"
+  if [[ "$ARCH" == "$(uname -m)" ]]; then
+    "$MOUNT/HostShelf.app/Contents/MacOS/HostShelf" --smoke-check
+  fi
   hdiutil detach "$MOUNT"
   rmdir "$MOUNT"
   trap - EXIT

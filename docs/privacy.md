@@ -17,7 +17,7 @@ python3 script/check_binary_privacy.py /Applications/HostShelf.app
 
 压缩的 DMG 应只读挂载后检查其中的 App；不能用压缩文件的字符串扫描代替内容验证。dSYM 只用于本机调试，不随包交付；删除不再使用的历史构建缓存时也应清理旧 dSYM。
 
-公开 GitHub 发行产物统一使用 `./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous`，保证外层 DMG 不签名且内部 App 与 Framework 仅为本地 `ad-hoc` 签名（`Signature=adhoc`、`TeamIdentifier=not set`，无 `Authority=` 证书身份或公证记录），不暴露签名证书姓名／Team ID、个人主目录或本机编译路径。仅在本机自用或明确授权的私有 Developer ID 构建中才会出现对应证书的合法身份信息，不可将其当作匿名公开包分发。
+公开 GitHub 发行产物统一使用 `./script/package.sh --anonymous` 与 `./script/verify_packages.sh --anonymous`，保证外层 DMG 不签名且内部 App 与 Framework 仅为本地 `ad-hoc` 签名（`Signature=adhoc`、`TeamIdentifier=not set`，不启用 Hardened Runtime，无 `Authority=` 证书身份或公证记录），不暴露签名证书姓名／Team ID、个人主目录或本机编译路径。仅在本机自用或明确授权的私有 Developer ID 构建（`--developer-id`／`--signed`）中才启用 Hardened Runtime 并出现对应证书的合法身份信息，不可将其当作匿名公开包分发。
 
 ## Git 历史与 GitHub 残留
 
