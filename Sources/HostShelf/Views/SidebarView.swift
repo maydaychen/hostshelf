@@ -14,10 +14,10 @@ struct SidebarView: View {
             }
             Section {
                 ForEach(store.groups, id: \.self) { group in
-                    HStack(spacing: 6) {
+                    HStack(spacing: HostShelfSpacing.s6) {
                         Label(group, systemImage: "folder")
                         if store.isGroupProtected(group) {
-                            Spacer(minLength: 4)
+                            Spacer(minLength: HostShelfSpacing.s4)
                             Image(systemName: "shield.lefthalf.filled")
                                 .font(.caption)
                                 .foregroundStyle(.orange)
@@ -66,7 +66,7 @@ struct SidebarView: View {
         .listStyle(.sidebar)
         .navigationTitle("HostShelf")
         .sheet(isPresented: $showNewGroup) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: HostShelfSpacing.s16) {
                 Text("新建分组").font(.title2.weight(.semibold))
                 TextField("分组名称，例如“工作”", text: $groupName)
                     .onSubmit { createGroup() }
@@ -80,7 +80,7 @@ struct SidebarView: View {
                         .disabled(groupName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 if let error = store.metadataError { Text(error).font(.caption).foregroundStyle(.orange) }
-            }.padding(24).frame(width: 370)
+            }.padding(HostShelfSpacing.s24).frame(width: 370)
         }
     }
 

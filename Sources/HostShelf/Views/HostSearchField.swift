@@ -4,6 +4,8 @@ import SwiftUI
 struct HostSearchField: NSViewRepresentable {
     @Binding var text: String
     let focusRequest: Int
+    /// Reports whether the field editor owns focus, so the surrounding container can draw an aligned focus ring.
+    var onFocusChange: ((Bool) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -16,6 +18,7 @@ struct HostSearchField: NSViewRepresentable {
         field.isBezeled = false
         field.isBordered = false
         field.drawsBackground = false
+        // The SwiftUI container draws the focus ring around its full rounded chrome.
         field.focusRingType = .none
         field.usesSingleLineMode = true
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
@@ -23,6 +26,9 @@ struct HostSearchField: NSViewRepresentable {
         field.setAccessibilityLabel("搜索主机、备注或来源")
         field.setAccessibilityIdentifier("hostSearch")
         field.delegate = context.coordinator
+        field.focusChanged = { [weak coordinator = context.coordinator] focused in
+            coordinator?.representable.onFocusChange?(focused)
+        }
         context.coordinator.attach(field)
         return field
     }
@@ -36,15 +42,43 @@ struct HostSearchField: NSViewRepresentable {
     static func dismantleNSView(_ field: SearchTextField, coordinator: Coordinator) {
         field.delegate = nil
         field.windowChanged = nil
+        field.focusChanged = nil
+        let reportFocus = coordinator.representable.onFocusChange
+        DispatchQueue.main.async { reportFocus?(false) }
         coordinator.detach()
     }
 
     final class SearchTextField: NSTextField {
         var windowChanged: (() -> Void)?
+        var focusChanged: ((Bool) -> Void)?
+        private var reportedFocus = false
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
             windowChanged?()
+            scheduleFocusReport()
+        }
+
+        override func becomeFirstResponder() -> Bool {
+            let accepted = super.becomeFirstResponder()
+            scheduleFocusReport()
+            return accepted
+        }
+
+        override func textDidEndEditing(_ notification: Notification) {
+            super.textDidEndEditing(notification)
+            scheduleFocusReport()
+        }
+
+        /// Re-evaluates after the responder chain settles (e.g. Return re-selects the field).
+        private func scheduleFocusReport() {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                let focused = self.currentEditor().map { self.window?.firstResponder === $0 } ?? false
+                guard focused != self.reportedFocus else { return }
+                self.reportedFocus = focused
+                self.focusChanged?(focused)
+            }
         }
     }
 

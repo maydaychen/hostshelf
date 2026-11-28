@@ -9,7 +9,7 @@ struct HostTopologySection: View {
         let jumps = store.jumpAnalysis(for: host)
         let forwards = store.portForwards(for: host)
         if !jumps.isEmpty || !forwards.isEmpty {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: HostShelfSpacing.s14) {
                 if !jumps.isEmpty {
                     jumpSection(jumps)
                 }
@@ -22,13 +22,13 @@ struct HostTopologySection: View {
     }
 
     private func jumpSection(_ analysis: ProxyJumpAnalysis) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s10) {
             Label("跳板机链路", systemImage: "point.3.connected.trianglepath.dotted")
-                .font(.headline)
+                .hostSectionTitle()
 
             ForEach(Array(analysis.chains.enumerated()), id: \.offset) { _, chain in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: HostShelfSpacing.s6) {
                         chainNode("本机", isEmphasized: false)
                         ForEach(Array(chain.enumerated()), id: \.offset) { _, hop in
                             Image(systemName: "arrow.right")
@@ -62,7 +62,7 @@ struct HostTopologySection: View {
 
             ForEach(Array(analysis.proxyCommands.enumerated()), id: \.offset) { _, declaration in
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: HostShelfSpacing.s6) {
                         Text("ProxyCommand")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.secondary)
@@ -76,19 +76,19 @@ struct HostTopologySection: View {
                         .font(.system(.caption, design: .monospaced))
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(10)
+                .padding(HostShelfSpacing.s10)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
+                .hostSurface(HostShelfSurface.text, cornerRadius: HostShelfRadius.small)
             }
         }
     }
 
     private func forwardsSection(_ forwards: [PortForwardRule]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s10) {
+            HStack(spacing: HostShelfSpacing.s10) {
                 Label("端口转发", systemImage: "arrow.left.arrow.right.circle")
-                    .font(.headline)
-                Spacer(minLength: 8)
+                    .hostSectionTitle()
+                Spacer(minLength: HostShelfSpacing.s8)
                 Button("仅建立隧道 (ssh -N)") {
                     store.connectTunnel(host)
                 }
@@ -103,14 +103,10 @@ struct HostTopologySection: View {
             }
 
             ForEach(forwards) { rule in
-                HStack(alignment: .center, spacing: 10) {
-                    Text(rule.kind.displayName)
-                        .font(.caption2.weight(.medium))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+                HStack(alignment: .center, spacing: HostShelfSpacing.s10) {
+                    HostChip(rule.kind.displayName, isCompact: true)
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: HostShelfSpacing.s6) {
                             Text(rule.bindDisplay)
                                 .font(.system(.callout, design: .monospaced))
                             if let destination = rule.destinationDisplay {
@@ -127,7 +123,7 @@ struct HostTopologySection: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    Spacer(minLength: 8)
+                    Spacer(minLength: HostShelfSpacing.s8)
                     if rule.localBrowserURL != nil {
                         Button("打开本地端口") {
                             store.openForwardedPort(rule)
@@ -136,8 +132,8 @@ struct HostTopologySection: View {
                         .controlSize(.small)
                     }
                 }
-                .padding(10)
-                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 6))
+                .padding(HostShelfSpacing.s10)
+                .hostSurface(HostShelfSurface.control, cornerRadius: HostShelfRadius.small)
             }
         }
     }
@@ -145,11 +141,11 @@ struct HostTopologySection: View {
     private func chainNode(_ title: String, isEmphasized: Bool) -> some View {
         Text(title)
             .font(.system(.caption, design: .monospaced))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, HostShelfSpacing.s8)
+            .padding(.vertical, HostShelfSpacing.s4)
             .background(
-                isEmphasized ? Color.accentColor.opacity(0.16) : Color.secondary.opacity(0.12),
-                in: RoundedRectangle(cornerRadius: 5)
+                isEmphasized ? HostShelfSurface.selection : Color.secondary.opacity(0.12),
+                in: RoundedRectangle(cornerRadius: HostShelfRadius.small, style: .continuous)
             )
     }
 }

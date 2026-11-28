@@ -18,8 +18,8 @@ struct HostDeclarationsSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("全部声明").font(.headline)
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s16) {
+            Text("全部声明").hostSectionTitle()
             Text("按来源文件分组。声明可能受公共规则、顺序或条件影响；点击行号查看原文。")
                 .font(.caption).foregroundStyle(.secondary)
             if host.declarations.isEmpty {
@@ -30,11 +30,11 @@ struct HostDeclarationsSection: View {
                 let path = group.path
                 let declarations = group.declarations
                 let keywordWidth = HostListPresentation.keywordColumnWidth(declarations.map(\.keyword))
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: HostShelfSpacing.s8) {
                     Label(store.displayPath(path), systemImage: "doc.text")
                         .font(.caption.monospaced()).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                    Grid(alignment: .leading, horizontalSpacing: HostShelfSpacing.s12, verticalSpacing: HostShelfSpacing.s8) {
                         GridRow {
                             Text("指令").frame(width: keywordWidth, alignment: .leading)
                             Text("声明值").frame(maxWidth: .infinity, alignment: .leading)
@@ -46,7 +46,7 @@ struct HostDeclarationsSection: View {
                                 Text(declaration.keyword)
                                     .frame(width: keywordWidth, alignment: .leading)
                                     .fixedSize(horizontal: false, vertical: true)
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: HostShelfSpacing.s4) {
                                     Text(declaration.value).fixedSize(horizontal: false, vertical: true)
                                     if declaration.isConditional {
                                         Text("含条件声明").font(.caption2).foregroundStyle(.secondary)
@@ -88,12 +88,12 @@ struct HostSourceExcerptsSection: View {
 
     var body: some View {
         let excerptsByPath = excerptsByPath
-        VStack(alignment: .leading, spacing: 12) {
-            Text("来源片段").font(.headline)
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s12) {
+            Text("来源片段").hostSectionTitle()
             ForEach(sourcePaths, id: \.self) { path in
                 let excerpt = excerptsByPath[path]
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: HostShelfSpacing.s8) {
+                    HStack(alignment: .top, spacing: HostShelfSpacing.s8) {
                         DisclosureGroup(isExpanded: Binding(
                             get: { expandedSources.contains(path) },
                             set: { expanded in
@@ -135,7 +135,7 @@ struct HostSourceExcerptsSection: View {
 
     private func code(_ excerpt: SourceExcerpt) -> some View {
         ScrollView(.horizontal) {
-            Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 3) {
+            Grid(alignment: .leading, horizontalSpacing: HostShelfSpacing.s10, verticalSpacing: 3) {
                 ForEach(Array(excerpt.lines.enumerated()), id: \.element.number) { index, line in
                     if index > 0 && line.number > excerpt.lines[index - 1].number + 1 {
                         Text("⋯ 中间行已省略 ⋯").font(.caption2).foregroundStyle(.secondary)
@@ -148,7 +148,7 @@ struct HostSourceExcerptsSection: View {
                             .gridColumnAlignment(.trailing)
                         Text(line.text.isEmpty ? " " : line.text)
                             .fixedSize()
-                            .padding(.horizontal, 4)
+                            .padding(.horizontal, HostShelfSpacing.s4)
                             .background(highlightedSource == location ? Color.accentColor.opacity(0.18) : Color.clear)
                             .background {
                                 SourceLineScrollAnchor(request: scrollRequest?.location == location ? scrollRequest : nil)
@@ -159,9 +159,9 @@ struct HostSourceExcerptsSection: View {
                             .id(location)
                     }.font(.system(.caption, design: .monospaced))
                 }
-            }.padding(10)
+            }.padding(HostShelfSpacing.s10)
         }
-        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 6))
+        .hostSurface(HostShelfSurface.text, cornerRadius: HostShelfRadius.small)
     }
 }
 

@@ -20,6 +20,7 @@
 		30152F142CDA2A19E9EC9950 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D4C2D03137DE032DFF1CCD /* SettingsView.swift */; };
 		32F66FFEE1FE7DF93D3E44AC /* HostShelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0330998C1F2A0AB3AEFCC9FF /* HostShelfApp.swift */; };
 		3E33CFC23219258CC2321DCD /* HostShelfCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 913C46F19DD1BF94A5C17B2F /* HostShelfCore.framework */; };
+		3F1E4D1DD7008EAA3594265C /* HostShelfTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0E3E7CE965F1CB55EB8BEB4 /* HostShelfTheme.swift */; };
 		509F0AA2FC925E8AFCB53ECE /* SSHTopology.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90911EF317F1DEFD96913D51 /* SSHTopology.swift */; };
 		53105A5BB6B2FC4F90D1E574 /* HostDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADF71D0BDF12B9C000BB1375 /* HostDetailView.swift */; };
 		5976FCCBA338EBDFC088C435 /* HostSearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4FA232A812EB17E3423510 /* HostSearchField.swift */; };
@@ -133,6 +134,7 @@
 		A8A6B31958E97C1918A94B01 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
 		AAD62C18AE93205B0FBDE7CF /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		ADF71D0BDF12B9C000BB1375 /* HostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostDetailView.swift; sourceTree = "<group>"; };
+		B0E3E7CE965F1CB55EB8BEB4 /* HostShelfTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostShelfTheme.swift; sourceTree = "<group>"; };
 		B850DED7FD893C3848BA65E9 /* RefreshConfigurationButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshConfigurationButton.swift; sourceTree = "<group>"; };
 		BBE78089ADB48E59DA51FFD3 /* HostTopologySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostTopologySection.swift; sourceTree = "<group>"; };
 		C08A2547299173D6015ED004 /* SourceExcerptReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceExcerptReaderTests.swift; sourceTree = "<group>"; };
@@ -274,6 +276,7 @@
 				A03FB3ADB4C59A47673F0791 /* HostMetadataSection.swift */,
 				EE4FA232A812EB17E3423510 /* HostSearchField.swift */,
 				2EF1E88C4C72E5EC5B80744F /* HostShelfMenu.swift */,
+				B0E3E7CE965F1CB55EB8BEB4 /* HostShelfTheme.swift */,
 				3740798CA16283A79F26283E /* HostSourceSections.swift */,
 				BBE78089ADB48E59DA51FFD3 /* HostTopologySection.swift */,
 				10C7C1B4E2F68A813A49996B /* HotKeyRecorderView.swift */,
@@ -451,6 +454,7 @@
 				5976FCCBA338EBDFC088C435 /* HostSearchField.swift in Sources */,
 				32F66FFEE1FE7DF93D3E44AC /* HostShelfApp.swift in Sources */,
 				61B44E8EDE4550B82AED7D27 /* HostShelfMenu.swift in Sources */,
+				3F1E4D1DD7008EAA3594265C /* HostShelfTheme.swift in Sources */,
 				BDEB8C300F1C57B203D1E7A7 /* HostSourceSections.swift in Sources */,
 				B780BD02F55A4D3B0067DE11 /* HostTopologySection.swift in Sources */,
 				0DA9FF904D36EFC10A814A68 /* HotKeyRecorderView.swift in Sources */,

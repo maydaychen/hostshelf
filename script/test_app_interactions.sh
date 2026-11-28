@@ -36,12 +36,12 @@ compile_check() {
     compile_check host-selection-check \
         Sources/HostShelf/Services/TerminalLauncher.swift Sources/HostShelf/Services/ExternalActionLauncher.swift \
         Sources/HostShelf/Stores/AppStore.swift Sources/HostShelf/Stores/AppStore+Actions.swift \
-        Sources/HostShelf/Views/{SidebarView,HostDetailView,HostMetadataSection,HostSourceSections,HostTopologySection,DiagnosticsView,RefreshConfigurationButton,SearchHighlight,HostSearchField}.swift \
+        Sources/HostShelf/Views/{SidebarView,HostDetailView,HostMetadataSection,HostSourceSections,HostTopologySection,DiagnosticsView,RefreshConfigurationButton,SearchHighlight,HostSearchField,HostShelfTheme}.swift \
         "$work_dir/HostListSelectionCheck.swift"
     compile_only large-list-layout-check \
         Sources/HostShelf/Services/TerminalLauncher.swift Sources/HostShelf/Services/ExternalActionLauncher.swift \
         Sources/HostShelf/Stores/AppStore.swift Sources/HostShelf/Stores/AppStore+Actions.swift \
-        Sources/HostShelf/Views/{ContentView,SidebarView,HostDetailView,HostMetadataSection,HostSourceSections,HostTopologySection,DiagnosticsView,RefreshConfigurationButton,SearchHighlight,HostSearchField}.swift \
+        Sources/HostShelf/Views/{ContentView,SidebarView,HostDetailView,HostMetadataSection,HostSourceSections,HostTopologySection,DiagnosticsView,RefreshConfigurationButton,SearchHighlight,HostSearchField,HostShelfTheme}.swift \
         Tests/ServiceChecks/LargeListLayoutCheck.swift Tests/ServiceChecks/InFlightExcerptGate.swift
     python3 -c 'import subprocess, sys; subprocess.run(sys.argv[1:], timeout=30, check=True)' \
         "$work_dir/large-list-layout-check"

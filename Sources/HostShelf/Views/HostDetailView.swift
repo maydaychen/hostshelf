@@ -41,9 +41,10 @@ struct HostDetailView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: HostShelfSpacing.s20) {
                         header(isCompactLabels: isCompactLabels, isCompactButtons: isCompactButtons)
                         overview(isWide: isWideOverview) { proxy.scrollTo("declarations", anchor: .top) }
+                        Divider()
                         HostMetadataSection(store: store, alias: host.alias)
                         Divider()
                         HostTopologySection(store: store, host: host)
@@ -65,7 +66,7 @@ struct HostDetailView: View {
                             scrollRequest: scrollRequest
                         )
                     }
-                    .padding(.horizontal, 24).padding(.vertical, 20)
+                    .padding(.horizontal, HostShelfSpacing.s24).padding(.vertical, HostShelfSpacing.s20)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -116,41 +117,46 @@ struct HostDetailView: View {
     }
 
     private func header(isCompactLabels: Bool, isCompactButtons: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s12) {
+            HStack(alignment: .top, spacing: HostShelfSpacing.s12) {
+                VStack(alignment: .leading, spacing: HostShelfSpacing.s6) {
                     Text(host.alias)
                         .font(.system(.title2, design: .monospaced).weight(.semibold))
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("selectedHostAlias")
                     if isCompactLabels {
-                        VStack(alignment: .leading, spacing: 6) { identityLabels }
+                        VStack(alignment: .leading, spacing: HostShelfSpacing.s6) { identityLabels }
                     } else {
-                        HStack(spacing: 8) { identityLabels }
+                        HStack(spacing: HostShelfSpacing.s8) { identityLabels }
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 Button { store.toggleFavorite(host.alias) } label: {
                     Image(systemName: annotation.isFavorite ? "star.fill" : "star")
+                        .font(.title3)
                         .foregroundStyle(annotation.isFavorite ? Color.yellow : Color.secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.borderless)
                 .accessibilityLabel(annotation.isFavorite ? "取消收藏" : "收藏主机")
                 .help(annotation.isFavorite ? "取消收藏" : "收藏主机")
                 .disabled(!store.metadataWritable)
             }
-            if isCompactButtons {
-                VStack(alignment: .leading, spacing: 8) { connectionButtons }
-            } else {
-                HStack(spacing: 8) { connectionButtons }
+            Group {
+                if isCompactButtons {
+                    VStack(alignment: .leading, spacing: HostShelfSpacing.s8) { connectionButtons }
+                } else {
+                    HStack(spacing: HostShelfSpacing.s8) { connectionButtons }
+                }
             }
+            .controlSize(.regular)
             Text("使用主机别名连接，实际参数由系统 SSH 解释。")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder private var identityLabels: some View {
-        Text(annotation.group.isEmpty ? "未分组" : annotation.group)
-            .font(.caption).padding(.horizontal, 7).padding(.vertical, 3)
-            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 4))
+        HostChip(annotation.group.isEmpty ? "未分组" : annotation.group)
             .fixedSize(horizontal: false, vertical: true)
         if hasConditions {
             Label("含条件声明", systemImage: "line.3.horizontal.decrease.circle")
@@ -186,22 +192,22 @@ struct HostDetailView: View {
     }
 
     private func overview(isWide: Bool, showDeclarations: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s12) {
             HStack {
-                Text("声明概览").font(.headline)
-                Spacer(minLength: 8)
+                Text("声明概览").hostSectionTitle()
+                Spacer(minLength: HostShelfSpacing.s8)
                 Text("以下为配置声明").font(.caption).foregroundStyle(.secondary)
             }
             if isWide {
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: HostShelfSpacing.s16) {
                     overviewValue("HostName", label: "地址", showDeclarations: showDeclarations).frame(minWidth: 210)
                     overviewValue("User", label: "用户", showDeclarations: showDeclarations).frame(minWidth: 100)
                     overviewValue("Port", label: "端口", showDeclarations: showDeclarations).frame(minWidth: 80)
                 }
             } else {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: HostShelfSpacing.s12) {
                     overviewValue("HostName", label: "地址", showDeclarations: showDeclarations)
-                    HStack(alignment: .top, spacing: 16) {
+                    HStack(alignment: .top, spacing: HostShelfSpacing.s16) {
                         overviewValue("User", label: "用户", showDeclarations: showDeclarations)
                         overviewValue("Port", label: "端口", showDeclarations: showDeclarations)
                     }
@@ -212,7 +218,7 @@ struct HostDetailView: View {
 
     private func overviewValue(_ keyword: String, label: String, showDeclarations: @escaping () -> Void) -> some View {
         let declarations = host.declarations.filter { $0.keyword.lowercased() == keyword.lowercased() }
-        return VStack(alignment: .leading, spacing: 5) {
+        return VStack(alignment: .leading, spacing: HostShelfSpacing.s4) {
             Text(keyword).font(.caption).foregroundStyle(.secondary).help(label)
             if declarations.count > 1 {
                 Button("\(declarations.count) 处声明", action: showDeclarations)

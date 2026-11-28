@@ -24,7 +24,7 @@ struct QuickLauncherView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
+            HStack(spacing: HostShelfSpacing.s10) {
                 Image(systemName: "magnifyingglass")
                     .font(.title3)
                     .foregroundStyle(.secondary)
@@ -50,8 +50,8 @@ struct QuickLauncherView: View {
                     .accessibilityLabel("清除搜索")
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.horizontal, HostShelfSpacing.s16)
+            .padding(.vertical, HostShelfSpacing.s14)
 
             Divider()
 
@@ -84,7 +84,7 @@ struct QuickLauncherView: View {
                                 }
                             }
                         }
-                        .padding(8)
+                        .padding(HostShelfSpacing.s8)
                     }
                     .onChange(of: selectedAlias) { _, newValue in
                         if let newValue {
@@ -96,7 +96,7 @@ struct QuickLauncherView: View {
 
             Divider()
 
-            HStack(spacing: 14) {
+            HStack(spacing: HostShelfSpacing.s14) {
                 Label("Return 用 \(store.preferredTerminal.displayName) 连接", systemImage: "return")
                 Text("⌥Return 在主窗口定位")
                 Text("⌘C 复制命令")
@@ -105,12 +105,12 @@ struct QuickLauncherView: View {
             }
             .font(.caption2)
             .foregroundStyle(.secondary)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.horizontal, HostShelfSpacing.s14)
+            .padding(.vertical, HostShelfSpacing.s8)
         }
         .frame(width: 600, height: 420)
-        .background(.ultraThickMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(.quaternary, lineWidth: 1))
+        .background(.ultraThickMaterial, in: RoundedRectangle(cornerRadius: HostShelfRadius.large, style: .continuous))
+        .hairlineBorder(cornerRadius: HostShelfRadius.large)
         .onChange(of: query) { _, _ in
             selectedAlias = rankedHosts.first?.alias
         }
@@ -164,29 +164,22 @@ private struct QuickLauncherRow: View {
     let isProtected: Bool
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: HostShelfSpacing.s10) {
             Image(systemName: "terminal")
                 .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                 .frame(width: 18)
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+                HStack(spacing: HostShelfSpacing.s6) {
                     Text(SearchHighlight.text(host.alias, query: query))
                         .font(.system(.body, design: .monospaced).weight(.medium))
                         .lineLimit(1)
                     if !annotation.group.isEmpty {
-                        Text(annotation.group)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+                        HostChip(annotation.group, isCompact: true)
                     }
-                    ForEach(Array(annotation.tags.prefix(3)), id: \.self) { tag in
-                        Text("#\(tag)")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
+                    HStack(spacing: HostShelfSpacing.s4) {
+                        ForEach(Array(annotation.tags.prefix(3)), id: \.self) { tag in
+                            HostTag(tag, isCompact: true)
+                        }
                     }
                 }
                 Text(SearchHighlight.text(HostListPresentation.subtitle(for: host, annotation: annotation), query: query))
@@ -194,7 +187,7 @@ private struct QuickLauncherRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            Spacer(minLength: 8)
+            Spacer(minLength: HostShelfSpacing.s8)
             if isProtected {
                 Image(systemName: "shield.lefthalf.filled")
                     .font(.caption)
@@ -211,11 +204,11 @@ private struct QuickLauncherRow: View {
                     .foregroundStyle(.yellow)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        .padding(.horizontal, HostShelfSpacing.s10)
+        .padding(.vertical, HostShelfSpacing.s6)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isSelected ? Color.accentColor.opacity(0.16) : Color.clear)
+            RoundedRectangle(cornerRadius: HostShelfRadius.medium, style: .continuous)
+                .fill(isSelected ? HostShelfSurface.selection : Color.clear)
         )
     }
 }

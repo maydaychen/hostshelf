@@ -3,52 +3,49 @@ import SwiftUI
 
 struct ContentView: View {
     @Bindable var store: AppStore
+    @State private var isSearchFocused = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let error = store.metadataError {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout)
-                        .foregroundStyle(.orange)
-                    HStack {
-                        Button("重读附加信息") { store.reloadMetadata() }
-                        Button("在 Finder 中显示") { store.showMetadataInFinder() }
+        NavigationSplitView {
+            SidebarView(store: store)
+                .navigationSplitViewColumnWidth(min: 165, ideal: 200, max: 260)
+        } content: {
+            HostListView(store: store)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if let error = store.metadataError {
+                        MetadataErrorBanner(store: store, message: error)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(.quaternary)
-                Divider()
-            }
-            NavigationSplitView {
-                SidebarView(store: store)
-                    .navigationSplitViewColumnWidth(min: 165, ideal: 200, max: 260)
-            } content: {
-                HostListView(store: store)
-                    .navigationSplitViewColumnWidth(min: 220, ideal: 280, max: 420)
-            } detail: {
-                HostDetailColumn(store: store)
-            }
+                .navigationSplitViewColumnWidth(min: 220, ideal: 280, max: 420)
+        } detail: {
+            HostDetailColumn(store: store)
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
-                HStack(spacing: 8) {
+                HStack(spacing: HostShelfSpacing.s6) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
-                    HostSearchField(text: $store.searchText, focusRequest: store.searchFocusRequest)
-                        .frame(minWidth: 150, idealWidth: 220, maxWidth: 280)
+                    HostSearchField(
+                        text: $store.searchText,
+                        focusRequest: store.searchFocusRequest,
+                        onFocusChange: { isSearchFocused = $0 }
+                    )
+                    .frame(minWidth: 150, idealWidth: 220, maxWidth: 280)
                     if !store.searchText.isEmpty {
-                        Button { store.searchText = "" } label: { Image(systemName: "xmark.circle.fill") }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("清除搜索")
-                            .help("清除搜索")
+                        Button { store.searchText = "" } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("清除搜索")
+                        .help("清除搜索")
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .frame(minHeight: 32)
+                .padding(.horizontal, HostShelfSpacing.s8)
+                .padding(.vertical, HostShelfSpacing.s4)
+                .frame(minHeight: 28)
+                .hostSearchFieldChrome(isFocused: isSearchFocused)
+                .padding(3) // Room for the outer focus ring so the toolbar does not clip it.
             }
             ToolbarItem(id: "refreshConfiguration") {
                 RefreshConfigurationButton(isRefreshing: store.isRefreshing) { store.refresh() }
@@ -131,11 +128,11 @@ private struct HostListView: View {
                 Text(filterTitle).font(.headline)
                 Spacer()
                 Text("\(hosts.count)").foregroundStyle(.secondary).monospacedDigit()
-            }.padding(12)
+            }.padding(HostShelfSpacing.s12)
             Divider()
             if hosts.isEmpty {
                 if !store.hasScanned {
-                    VStack(spacing: 12) { ProgressView(); Text("正在读取 SSH 配置…").foregroundStyle(.secondary) }
+                    VStack(spacing: HostShelfSpacing.s12) { ProgressView(); Text("正在读取 SSH 配置…").foregroundStyle(.secondary) }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if !store.searchText.isEmpty {
                     VStack(spacing: 0) {
@@ -162,7 +159,6 @@ private struct HostListView: View {
                             alias: host.alias,
                             subtitle: HostListPresentation.subtitle(for: host, annotation: annotation),
                             isFavorite: annotation.isFavorite,
-                            isConditional: host.isConditional,
                             isProtected: store.requiresConnectionConfirmation(for: host.alias),
                             query: trimmedQuery
                         )
@@ -189,19 +185,19 @@ private struct HostListView: View {
                 }
             }
             Divider()
-            HStack(spacing: 6) {
+            HStack(spacing: HostShelfSpacing.s6) {
                 Image(systemName: store.isConnecting ? "arrow.up.forward.app" : store.statusMessage == nil ? "doc.text.magnifyingglass" : "checkmark.circle")
                     .frame(width: 16)
                 Text(status)
                     .lineLimit(1)
                     .help(statusHelp)
                     .accessibilityIdentifier("hostListStatus")
-                Spacer(minLength: 4)
+                Spacer(minLength: HostShelfSpacing.s4)
                 if store.hasScanned {
                     Text("上次读取 \(store.snapshot.scannedAt.formatted(date: .omitted, time: .shortened))")
                         .fixedSize()
                 }
-            }.font(.caption).foregroundStyle(.secondary).frame(height: 20).padding(10)
+            }.font(.caption).foregroundStyle(.secondary).frame(height: 20).padding(HostShelfSpacing.s10)
         }
     }
 
@@ -277,7 +273,7 @@ private struct HostEmptyStateCard: View {
     var action: (() -> Void)? = nil
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: HostShelfSpacing.s10) {
             Image(systemName: icon)
                 .font(.system(size: 32))
                 .foregroundStyle(.secondary)
@@ -287,10 +283,10 @@ private struct HostEmptyStateCard: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, HostShelfSpacing.s20)
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .padding(.top, 6)
+                    .padding(.top, HostShelfSpacing.s6)
             }
         }
         .padding(.vertical, 28)
@@ -298,31 +294,72 @@ private struct HostEmptyStateCard: View {
     }
 }
 
+/// Metadata read/save failure, pinned to the top safe area of the host list column.
+private struct MetadataErrorBanner: View {
+    var store: AppStore
+    let message: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: HostShelfSpacing.s8) {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .foregroundStyle(HostShelfSurface.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: HostShelfSpacing.s8) { actions }
+                    VStack(alignment: .leading, spacing: HostShelfSpacing.s6) { actions }
+                }
+                .controlSize(.small)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(HostShelfSpacing.s12)
+            .background(HostShelfSurface.warning.opacity(0.1))
+            Divider()
+        }
+        .background(.bar)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("metadataErrorBanner")
+    }
+
+    @ViewBuilder private var actions: some View {
+        Button("重读附加信息") { store.reloadMetadata() }
+        Button("在 Finder 中显示") { store.showMetadataInFinder() }
+    }
+}
+
 private struct HostRow: View, Equatable {
     let alias: String
     let subtitle: String
     let isFavorite: Bool
-    let isConditional: Bool
     let isProtected: Bool
     let query: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "terminal").foregroundStyle(.secondary).padding(.top, 2)
+        HStack(alignment: .center, spacing: HostShelfSpacing.s8) {
             VStack(alignment: .leading, spacing: 2) {
                 aliasText.font(.system(.body, design: .monospaced)).lineLimit(1)
                 subtitleText.font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
-            Spacer(minLength: 4)
-            if isProtected {
-                Image(systemName: "shield.lefthalf.filled")
-                    .foregroundStyle(.orange)
-                    .help("连接前需二次确认")
-                    .accessibilityLabel("连接前需二次确认")
+            Spacer(minLength: HostShelfSpacing.s4)
+            // At most two trailing marks; both are fixed-size so the alias truncates first.
+            HStack(spacing: HostShelfSpacing.s4) {
+                if isProtected {
+                    Image(systemName: "shield.lefthalf.filled")
+                        .foregroundStyle(HostShelfSurface.warning)
+                        .help("连接前需二次确认")
+                        .accessibilityLabel("连接前需二次确认")
+                }
+                if isFavorite {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(.yellow)
+                        .help("已收藏")
+                        .accessibilityLabel("已收藏")
+                }
             }
-            if isFavorite { Image(systemName: "star.fill").foregroundStyle(.yellow).accessibilityLabel("已收藏") }
-            if isConditional { Image(systemName: "line.3.horizontal.decrease.circle").foregroundStyle(.secondary).help("包含条件配置") }
-        }.padding(.vertical, 5).help(alias)
+            .fixedSize()
+            .layoutPriority(1)
+        }.padding(.vertical, HostShelfSpacing.s4).help(alias)
     }
 
     private var aliasText: Text {

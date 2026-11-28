@@ -12,10 +12,10 @@ struct HostMetadataSection: View {
     private var annotation: HostAnnotation { store.annotation(for: alias) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text("本地备注").font(.caption).foregroundStyle(.secondary)
-                Spacer(minLength: 8)
+        VStack(alignment: .leading, spacing: HostShelfSpacing.s10) {
+            HStack(alignment: .firstTextBaseline, spacing: HostShelfSpacing.s12) {
+                Text("本地备注").hostSectionTitle()
+                Spacer(minLength: HostShelfSpacing.s8)
                 Button(isEditing ? "完成" : "编辑分组与备注") {
                     if isEditing {
                         if store.flushAnnotation(alias: alias) { isEditing = false }
@@ -51,9 +51,8 @@ struct HostMetadataSection: View {
                 .font(.body)
                 .frame(minHeight: 65, idealHeight: 85, maxHeight: 120)
                 .scrollContentBackground(.hidden)
-                .padding(6)
-                .background(.background, in: RoundedRectangle(cornerRadius: 6))
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                .padding(HostShelfSpacing.s6)
+                .hostSurface(HostShelfSurface.text, cornerRadius: HostShelfRadius.small)
                 .disabled(!store.metadataWritable)
                 .accessibilityLabel("主机备注")
                 .accessibilityIdentifier("hostNote")
@@ -78,13 +77,9 @@ struct HostMetadataSection: View {
                     .foregroundStyle(annotation.note.isEmpty ? Color.secondary : Color.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 if !annotation.tags.isEmpty {
-                    TagFlowLayout(spacing: 6) {
+                    TagFlowLayout(spacing: HostShelfSpacing.s4) {
                         ForEach(annotation.tags, id: \.self) { tag in
-                            Text("#\(tag)")
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(.quaternary, in: RoundedRectangle(cornerRadius: 5))
+                            HostTag(tag)
                         }
                     }
                 }
@@ -99,8 +94,6 @@ struct HostMetadataSection: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
-        .padding(14)
-        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
         .onAppear {
             if store.unsavedAnnotations[alias] != nil {
                 restoreDraft()
@@ -128,7 +121,7 @@ struct HostMetadataSection: View {
 }
 
 private struct TagFlowLayout: Layout {
-    var spacing: CGFloat = 6
+    var spacing: CGFloat = HostShelfSpacing.s4
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxWidth = proposal.width ?? .infinity
